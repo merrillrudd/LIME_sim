@@ -14,8 +14,8 @@ library(LBSPR)
 
 
 ### ----- directories and functions -----------###
-main_dir <- "C:\\Git_Projects\\LIME_sim"
-# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+# main_dir <- "C:\\Git_Projects\\LIME_sim"
+main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 funs <- list.files(file.path(main_dir, "R"))
 ignore <- sapply(1:length(funs), function(x) source(file.path(main_dir,"R", funs[x])))
 
@@ -51,8 +51,7 @@ equil_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_v
 	# lh_fig(lh=lh_list, save=FALSE)
 
 	### ----- use parallel cores -----------###
-	# registerDoParallel(cores=8)	
-	registerDoParallel(cores=2)	
+	registerDoParallel(cores=8)	
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
