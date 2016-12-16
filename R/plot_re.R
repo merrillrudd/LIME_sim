@@ -57,7 +57,7 @@ for(ff in 1:nf){
 		index <- which(grepl(compareToLH[ff],dirs) & grepl(lh_vec[ll],dirs))
 		lime_index <- which(grepl(compareToLH[ff],lime_dirs) & grepl(lh_vec[ll],lime_dirs))
 		if(length(index)==1) xmax <- 1.5
-		if(length(index)>1) xmax <- ncol(re[,index]) + 0.5
+		if(length(index)>1) xmax <- ncol(bias[,index]) + 0.5
 
 		# beanplot(as.data.frame(re[,index]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", lwd=3, na.rm=TRUE, xaxs="i", yaxs="i", what=c(0,1,1,0), add=TRUE, beanlines="median", beanlinewd=3)
 		plot(x=1, y=1, type="n", xaxs="i", yaxs="i", xlab="", ylab="", xlim=c(0.5,xmax), ylim=ylim, xaxt="n", yaxt="n")
