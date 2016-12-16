@@ -49,7 +49,7 @@ nl <- length(lh_vec)
 # col_vec <- brewer.pal(3, "Set1")
 names <- gsub("_", "\n", modcombos[,"Data_avail"])
 bias <- sapply(1:length(dirs), function(x) median(abs(dev[,x]), na.rm=TRUE))
-precision <- sapply(1:length(dirs), function(x) sqrt((1/nrow(dev))*sum(dev[,x]^2)))
+precision <- sapply(1:length(dirs), function(x) sqrt((1/nrow(dev))*sum(dev[,x]^2, na.rm=TRUE)))
 lime_dirs <- dirs[which(grepl("LBSPR",dirs)==FALSE)]
 
 
