@@ -63,7 +63,7 @@ for(ff in 1:nf){
 		plot(x=1, y=1, type="n", xaxs="i", yaxs="i", xlab="", ylab="", xlim=c(0.5,xmax), ylim=ylim, xaxt="n", yaxt="n")
 		abline(h=0, lwd=5, col="red")
 		par(new=TRUE)
-		boxplot(re[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
+		boxplot(bias[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
 		if(text==TRUE){
 			text(x=1:length(index), y=0.7*ylim[2], round(bias[index],3), cex=2, col="blue")
 			text(x=1:length(index), y=0.8*ylim[2], round(precision[index],3), cex=2, col="red")
