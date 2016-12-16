@@ -63,7 +63,7 @@ run_LBSPR <- function(modpath, lh, data_avail, itervec=NULL, species=NULL, rewri
 
         LB_pars <- new("LB_pars")
         LB_pars@Linf <- inits$linf
-        LB_pars@CVLinf <- inits$CVLen
+        LB_pars@CVLinf <- inits$CVlen
         LB_pars@L50 <- inits$ML50 
         id_L95 <- which(round(inits$Mat_a, 2) %in% seq(from=0.92,to=1.00,by=0.01))[1]
         LB_pars@L95 <- inits$L_a[id_L95]
