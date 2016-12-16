@@ -3,7 +3,7 @@ plot_re <- function(dirs, modcombos, itervec, ylim=c(-1,1), compareToLH, lh_vec,
 
 if(recalc==TRUE){
 	### ------- check output ------###
-	dev <- matrix(NA, nrow=length(itervec), ncol=length(dirs))
+	dev <- re <- matrix(NA, nrow=length(itervec), ncol=length(dirs))
 	converge <- matrix(1, nrow=length(itervec), ncol=length(dirs))
 	for(m in 1:length(dirs)){
 		for(i in 1:length(itervec)){
@@ -27,6 +27,7 @@ if(recalc==TRUE){
 				}	
 
 				dev[i,m] <- rep$SPR_t[length(rep$SPR_t)] - true$SPR_t[length(true$SPR_t)]	
+				re[i,m] <- dev[i,m]/true$SPR_t[length(true$SPR_t)]
 			}	
 
 			if(grepl("LBSPR", dirs[m])){
@@ -36,6 +37,7 @@ if(recalc==TRUE){
 				}
 				rep <- readRDS(file.path(dirs[m], itervec[i], "LBSPR_results.rds"))
 				dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])^2
+				re[i,m] <- dev[i,m]/true$SPR_t[length(true$SPR_t)]
 			}	
 
 		}
@@ -57,13 +59,13 @@ for(ff in 1:nf){
 		index <- which(grepl(compareToLH[ff],dirs) & grepl(lh_vec[ll],dirs))
 		lime_index <- which(grepl(compareToLH[ff],lime_dirs) & grepl(lh_vec[ll],lime_dirs))
 		if(length(index)==1) xmax <- 1.5
-		if(length(index)>1) xmax <- ncol(dev[,index]) + 0.5
+		if(length(index)>1) xmax <- ncol(re[,index]) + 0.5
 
 		# beanplot(as.data.frame(re[,index]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", lwd=3, na.rm=TRUE, xaxs="i", yaxs="i", what=c(0,1,1,0), add=TRUE, beanlines="median", beanlinewd=3)
 		plot(x=1, y=1, type="n", xaxs="i", yaxs="i", xlab="", ylab="", xlim=c(0.5,xmax), ylim=ylim, xaxt="n", yaxt="n")
 		abline(h=0, lwd=5, col="red")
 		par(new=TRUE)
-		boxplot(dev[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
+		boxplot(re[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
 		if(text==TRUE){
 			text(x=1:length(index), y=0.7*ylim[2], round(bias[index],3), cex=2, col="blue")
 			text(x=1:length(index), y=0.8*ylim[2], round(precision[index],3), cex=2, col="red")
