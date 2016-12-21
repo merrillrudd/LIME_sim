@@ -78,7 +78,7 @@ for(ff in 1:nf){
 	}
 }
 mtext("Data availability scenario", side=1, line=4, outer=TRUE, cex=1.5)
-mtext("Relative error", side=2, line=3, outer=TRUE, cex=1.5)
+mtext("Estimation error", side=2, line=3, outer=TRUE, cex=1.5)
 mtext("Life history type", side=3, line=4, outer=TRUE, cex=1.5)
 mtext("Population dynamic scenario", side=4, line=4, outer=TRUE, cex=1.5)
 
