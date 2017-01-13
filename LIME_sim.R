@@ -7,8 +7,9 @@ library(doParallel)
 library(RColorBrewer)
 
 devtools::install_github("merrillrudd/LIME", build.vignettes=TRUE, dependencies=TRUE)
-library(LIME)
 devtools::install_github("adrianhordyk/LBSPR", build.vignettes=TRUE, dependencies=TRUE)
+
+library(LIME)
 library(LBSPR)
 
 
@@ -30,11 +31,13 @@ dir.create(fig_dir, showWarnings=FALSE)
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- "Constant"
 Rdyn_vec <- "Constant"
-data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC5", "LC2", "LC1", "LBSPR10", "LBSPR1")
 ESS_vec <- c(1000, 100)
 itervec <- 1:100
 
 equil_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
+	equil_modcombos$C_opt[which(grepl("Catch",equil_modcombos[,"Data_avail"]))] <- 1
 
 ### ----- equilibrium test ----------- ###
 
@@ -43,7 +46,7 @@ equil_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_v
 	dir.create(equil_dir, showWarnings=FALSE)	
 
 	## setup equilibrium dirs
-	equil_dir_vec <- model_paths(res_dir=equil_dir, modcombos=equil_modcombos)
+	equil_dir_vec <- model_paths(res_dir=equil_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
 	ignore <- sapply(1:length(equil_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(equil_dir_vec[m], x), showWarnings=FALSE)))	
 
 	## setup scenario life history list
@@ -65,25 +68,31 @@ equil_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_v
 	lbspr_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=TRUE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=equil_modcombos[loop,"C_opt"])
 	end_run <- Sys.time() - start_run
+
 
 	### ----- run LBSPR -----------###	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
-	end_altrun <- Sys.time() - start_run	
+	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
+	end_altrun <- Sys.time() - start_run
+
 
 	### ------- check output ------###	
+	dir_esslow <- equil_dir_vec[grepl("ESS_100/", equil_dir_vec)]
+	dir_esshigh <- equil_dir_vec[grepl("ESS_1000", equil_dir_vec)]
+	
+	equil_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
+	equil_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
 
-	equil_cover <- interval_coverage(dirs=lime_dirs, itervec=itervec)
-
-	png(file.path(fig_dir, "Equilibrium_RE.png"), height=10, width=25, res=200, units="in")
-	equil_res <- plot_re(dirs=equil_dir_vec, modcombos=equil_modcombos, itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=equil_cover$cover, ylim=c(-1,1))
+	png(file.path(fig_dir, "Equilibrium_ESSlow_RE.png"), height=10, width=25, res=200, units="in")
+	equil_res <- plot_re(dirs=dir_esslow, modcombos=equil_modcombos[which(equil_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=equil_coverlow$cover, ylim=c(-1,1))
 	dev.off()
 
-	re_med <- sapply(1:ncol(equil_res$bias), function(x) median(equil_res$bias[,x], na.rm=TRUE))
-	re_med_LIME <- re_med[which(grepl("LBSPR", equil_dir_vec)==FALSE)]	
+	png(file.path(fig_dir, "Equilibrium_ESShigh_RE.png"), height=10, width=25, res=200, units="in")
+	equil_res <- plot_re(dirs=dir_esshigh, modcombos=equil_modcombos[which(equil_modcombos$ESS=="ESS_1000"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=equil_coverhigh$cover, ylim=c(-1,1))
+	dev.off()
 
 
 
@@ -94,11 +103,13 @@ equil_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_v
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- c("Endogenous")
 Rdyn_vec <- c("AR")
-data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1")#, "LBSPR10", "LBSPR1")
+data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC5", "LC2", "LC1", "LBSPR10", "LBSPR1")
 ESS_vec <- c(1000, 100)
 itervec <- 1:100
 
 base_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
+	base_modcombos$C_opt[which(grepl("Catch",base_modcombos[,"Data_avail"]))] <- 1
 
 ### ----- base runs ----------- ###
 	base_dir <- file.path(main_dir, "base")
@@ -106,16 +117,16 @@ base_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_ve
 	dir.create(base_dir, showWarnings=FALSE)	
 
 	## setup baseibrium dirs
-	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos)
+	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
 	ignore <- sapply(1:length(base_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(base_dir_vec[m], x), showWarnings=FALSE)))	
 
 	## setup scenario life history list
-	lh_list <- adj_variation(SigmaR=0.737, SigmaF=0.3, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.426)
+	lh_list <- adj_variation(SigmaR=0.737, SigmaF=0.2, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.426)
 	# lh_fig(lh=lh_list, save=FALSE)
 
 	### ----- use parallel cores -----------###
-	# registerDoParallel(cores=8)	
-	registerDoParallel(cores=2)	
+	registerDoParallel(cores=8)	
+	# registerDoParallel(cores=2)	
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
@@ -129,93 +140,219 @@ base_modcombos <- expand.grid("Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_ve
 	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=base_modcombos[loop,"C_opt"])
 	end_run <- Sys.time() - start_run
 
 	### ----- run LBSPR -----------###	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
+	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
 	end_altrun <- Sys.time() - start_run	
 
 	### ------- check output ------###	
+	dir_esslow <- base_dir_vec[grepl("ESS_100/", base_dir_vec)]
+	dir_esshigh <- base_dir_vec[grepl("ESS_1000", base_dir_vec)]
+	
+	base_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
+	base_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
 
-	base_cover <- interval_coverage(dirs=lime_dirs, itervec=itervec)
-
-	png(file.path(fig_dir, "Equilibrium_RE.png"), height=10, width=25, res=200, units="in")
-	base_res <- plot_re(dirs=base_dir_vec, modcombos=base_modcombos, itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_cover$cover, ylim=c(-1,1))
+	png(file.path(fig_dir, "Base_ESSlow_RE.png"), height=10, width=25, res=200, units="in")
+	base_res <- plot_re(dirs=dir_esslow, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverlow$cover, ylim=c(-1,1))
 	dev.off()
 
-	re_med <- sapply(1:ncol(base_res$bias), function(x) median(base_res$bias[,x], na.rm=TRUE))
-	re_med_LIME <- re_med[which(grepl("LBSPR", base_dir_vec)==FALSE)]	
+	png(file.path(fig_dir, "Base_ESShigh_RE.png"), height=10, width=25, res=200, units="in")
+	base_res <- plot_re(dirs=dir_esshigh, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_1000"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverhigh$cover, ylim=c(-1,1))
+	dev.off()
 
-### ----- base runs - AR high----------- ###
-	base_highAR_dir <- file.path(main_dir, "base_highAR")
-	# unlink(base_highAR_dir, TRUE)
-	dir.create(base_highAR_dir, showWarnings=FALSE)	
+
+### ----- base runs - sigR lower----------- ###
+	base_lowsigR_dir <- file.path(main_dir, "base_lowsigR")
+	# unlink(base_lowsigR_dir, TRUE)
+	dir.create(base_lowsigR_dir, showWarnings=FALSE)	
 
 	## setup base dirs
-	base_highAR_dir_vec <- model_paths(res_dir=base_highAR_dir, modcombos=modcombos)
-	ignore <- sapply(1:length(base_highAR_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(base_highAR_dir_vec[m], x), showWarnings=FALSE)))	
+	base_lowsigR_dir_vec <- model_paths(res_dir=base_lowsigR_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
+	ignore <- sapply(1:length(base_lowsigR_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(base_lowsigR_dir_vec[m], x), showWarnings=FALSE)))	
 
 	## setup scenario life history list
-	lh_list <- adj_variation(SigmaR=0.737, SigmaF=0.3, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.976)
+	lh_list <- adj_variation(SigmaR=0.384, SigmaF=0.2, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.426)
 	# lh_fig(lh=lh_list, save=FALSE)
 
-	### ----- model info -----------###	
-
-	info <- list("Nyears"=20, "comp_sample"=1000)	
-
 	### ----- use parallel cores -----------###
-	# registerDoParallel(cores=8)	
-	registerDoParallel(cores=2)	
+	registerDoParallel(cores=8)	
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
-	foreach(loop=1:length(base_highAR_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_highAR_dir_vec[loop], data_avail=as.character(modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(strsplit(modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=info$Nyears, comp_sample=info$comp_sample, rewrite=FALSE)
+	foreach(loop=1:length(base_lowsigR_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_lowsigR_dir_vec[loop], data_avail=as.character(base_modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(strsplit(base_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(base_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(base_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
 	end_gen <- Sys.time() - start_gen
 
 	### ----- run LIME -----------###
-	lime_dirs <- base_highAR_dir_vec[which(grepl("LBSPR",base_highAR_dir_vec)==FALSE)]
-	lbspr_dirs <- base_highAR_dir_vec[which(grepl("LBSPR",base_highAR_dir_vec))]
-	lime_combos <- modcombos[which(grepl("LBSPR", modcombos[,"Data_avail"])==FALSE),]
-	lbspr_combos <- modcombos[which(grepl("LBSPR", modcombos[,"Data_avail"])),]	
+	lime_dirs <- base_lowsigR_dir_vec[which(grepl("LBSPR",base_lowsigR_dir_vec)==FALSE)]
+	lbspr_dirs <- base_lowsigR_dir_vec[which(grepl("LBSPR",base_lowsigR_dir_vec))]
+	lime_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])==FALSE),]
+	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=base_modcombos[loop,"C_opt"])
 	end_run <- Sys.time() - start_run
 
 	### ----- run LBSPR -----------###	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
+	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
 	end_altrun <- Sys.time() - start_run	
 
 	### ------- check output ------###	
 
-	base_highAR_cover <- interval_coverage(dirs=lime_dirs, itervec=itervec)
+	dir_esslow <- base_lowsigR_dir_vec[grepl("ESS_100/", base_lowsigR_dir_vec)]
+	dir_esshigh <- base_lowsigR_dir_vec[grepl("ESS_1000", base_lowsigR_dir_vec)]
+	
+	base_lowsigR_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
+	base_lowsigR_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
 
-	png(file.path(fig_dir, "Equilibrium_RE.png"), height=10, width=25, res=200, units="in")
-	base_highAR_res <- plot_re(dirs=base_highAR_dir_vec, modcombos=modcombos, itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_highAR_cover$cover, ylim=c(-1,1))
+	png(file.path(fig_dir, "Base_LowSigR_ESSlow_RE.png"), height=10, width=25, res=200, units="in")
+	base_lowsigR_res <- plot_re(dirs=dir_esslow, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_lowsigR_coverlow$cover, ylim=c(-1,1))
 	dev.off()
 
-	re_med <- sapply(1:ncol(base_highAR_res$bias), function(x) median(base_highAR_res$bias[,x], na.rm=TRUE))
-	re_med_LIME <- re_med[which(grepl("LBSPR", base_highAR_dir_vec)==FALSE)]	
-
+	png(file.path(fig_dir, "Base_LowSigR_ESShigh_RE.png"), height=10, width=25, res=200, units="in")
+	base_lowsigR_res <- plot_re(dirs=dir_esshigh, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_1000"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_lowsigR_coverhigh$cover, ylim=c(-1,1))
+	dev.off()
 
 
 
 
 ############################################################
-#### sensitivities
+#### sensitivities - equilibrium
 ############################################################
 ### ----- models to run ----------- ###
-lh_vec <- "Medium"
-Fdyn_vec <- "Constant" 
-data_vec <- "Catch_LC1"
-itervec <- 1
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- "Constant"
+Rdyn_vec <- "Constant" 
+data_vec <- c("LC10")
+ESS_vec <- c(1000, 100)
+itervec <- 1:100
+input_vec <- c("M", "linf", "vbk", "ML50", "CVlen")
+val_vec <- c("high", "low")
 
-modcombos <- expand.grid("Data_avail"=data_vec, "LH"=lh_vec, "Fdyn"=Fdyn_vec, stringsAsFactors=FALSE)
+sens_equil_modcombos <- expand.grid("Param"=input_vec, "Adjust"=val_vec, "Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
+	sens_equil_modcombos$C_opt[which(grepl("Catch",sens_equil_modcombos[,"Data_avail"]))] <- 1
+
+### ----- sens runs ----------- ###
+	sens_equil_dir <- file.path(main_dir, "sens_equil")
+	# unlink(sens_equil_dir, TRUE)
+	dir.create(sens_equil_dir, showWarnings=FALSE)	
+
+	## setup dirs
+	sens_equil_dir_vec <- model_paths(res_dir=sens_equil_dir, modcombos=sens_equil_modcombos[,-ncol(sens_equil_modcombos)])
+	ignore <- sapply(1:length(sens_equil_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(sens_equil_dir_vec[m], x), showWarnings=FALSE)))	
+
+	## equilibrium
+	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.01, rho=0)
+
+	## matrix of sensitivity values
+	sens_vals <- NULL
+	for(ll in 1:length(lh_vec)){
+		sens_vals[[lh_vec[ll]]] <- matrix(NA, nrow=length(val_vec), ncol=length(input_vec))
+		rownames(sens_vals[[lh_vec[ll]]]) <- val_vec
+		colnames(sens_vals[[lh_vec[ll]]]) <- input_vec
+		for(i in 1:length(input_vec)){
+			sens_vals[[lh_vec[ll]]]["low",input_vec[i]] <- lh_list[[lh_vec[ll]]][[input_vec[i]]] - 0.25*lh_list[[lh_vec[ll]]][[input_vec[i]]]
+			sens_vals[[lh_vec[ll]]]["high",input_vec[i]] <- lh_list[[lh_vec[ll]]][[input_vec[i]]] + 0.25*lh_list[[lh_vec[ll]]][[input_vec[i]]]
+		}
+	}
+
+
+	### ----- use parallel cores -----------###
+	registerDoParallel(cores=8)	
+
+	### ----- generate data -----------###
+	## copy data files from similar previous directory
+	alt_dirs <- rep(NA, length(sens_equil_dir_vec))
+	## find directory
+	for(i in 1:length(alt_dirs)){
+		xdir <- equil_dir_vec[grepl(paste0("/",sens_equil_modcombos[i,"Data_avail"]),equil_dir_vec)&grepl(paste0(sens_equil_modcombos[i,"ESS"],"/"),equil_dir_vec)&grepl(sens_equil_modcombos[i,"LH"],equil_dir_vec)&grepl(sens_equil_modcombos[i,"Fdyn"],equil_dir_vec)&grepl(sens_equil_modcombos[i,"Rdyn"],equil_dir_vec)]
+		if(length(xdir)>1) break
+		alt_dirs[i] <- xdir
+	}
+	## copy to directory
+	for(i in 1:length(alt_dirs)){
+		ignore <- sapply(1:length(itervec), function(x) file.copy(from=file.path(alt_dirs[i],x,"True.rds"), to=file.path(sens_equil_dir_vec[i],x)))
+	}
+
+	## run LIME
+	start_run <- Sys.time()
+	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=sens_equil_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]])
+	end_run <- Sys.time() - start_run
+
+############################################################
+#### sensitivities - base
+############################################################
+### ----- models to run ----------- ###
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- "Endogenous"
+Rdyn_vec <- "AR" 
+data_vec <- c("LC10")
+ESS_vec <- c(1000, 100)
+itervec <- 1:100
+input_vec <- c("M", "linf", "vbk", "ML50", "CVlen")
+val_vec <- c("high", "low")
+
+sens_base_modcombos <- expand.grid("Param"=input_vec, "Adjust"=val_vec, "Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
+	sens_base_modcombos$C_opt[which(grepl("Catch",sens_base_modcombos[,"Data_avail"]))] <- 1
+
+### ----- sens runs ----------- ###
+	sens_base_dir <- file.path(main_dir, "sens_base")
+	unlink(sens_base_dir, TRUE)
+	dir.create(sens_base_dir, showWarnings=FALSE)	
+
+	## setup dirs
+	sens_base_dir_vec <- model_paths(res_dir=sens_base_dir, modcombos=sens_base_modcombos[,-ncol(sens_base_modcombos)])
+	ignore <- sapply(1:length(sens_base_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(sens_base_dir_vec[m], x), showWarnings=FALSE)))	
+
+	## base
+	lh_list <- adj_variation(SigmaR=0.737, SigmaF=0.2, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.426)
+
+	## matrix of sensitivity values
+	sens_vals <- NULL
+	for(ll in 1:length(lh_vec)){
+		sens_vals[[lh_vec[ll]]] <- matrix(NA, nrow=length(val_vec), ncol=length(input_vec))
+		rownames(sens_vals[[lh_vec[ll]]]) <- val_vec
+		colnames(sens_vals[[lh_vec[ll]]]) <- input_vec
+		for(i in 1:length(input_vec)){
+			sens_vals[[lh_vec[ll]]]["low",input_vec[i]] <- lh_list[[lh_vec[ll]]][[input_vec[i]]] - 0.25*lh_list[[lh_vec[ll]]][[input_vec[i]]]
+			sens_vals[[lh_vec[ll]]]["high",input_vec[i]] <- lh_list[[lh_vec[ll]]][[input_vec[i]]] + 0.25*lh_list[[lh_vec[ll]]][[input_vec[i]]]
+		}
+	}
+
+
+	### ----- use parallel cores -----------###
+	registerDoParallel(cores=8)	
+
+	### ----- generate data -----------###
+	## copy data files from similar previous directory
+	alt_dirs <- rep(NA, length(sens_base_dir_vec))
+	## find directory
+	for(i in 1:length(alt_dirs)){
+		xdir <- base_dir_vec[grepl(paste0("/",sens_base_modcombos[i,"Data_avail"]),base_dir_vec)&grepl(paste0(sens_base_modcombos[i,"ESS"],"/"),base_dir_vec)&grepl(sens_base_modcombos[i,"LH"],base_dir_vec)&grepl(sens_base_modcombos[i,"Fdyn"],base_dir_vec)&grepl(sens_base_modcombos[i,"Rdyn"],base_dir_vec)]
+		if(length(xdir)>1) break
+		alt_dirs[i] <- xdir
+	}
+	## copy to directory
+	for(i in 1:length(alt_dirs)){
+		ignore <- sapply(1:length(itervec), function(x) file.copy(from=file.path(alt_dirs[i],x,"True.rds"), to=file.path(sens_base_dir_vec[i],x)))
+	}
+
+	## run LIME
+	start_run <- Sys.time()
+	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=sens_base_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]])
+	end_run <- Sys.time() - start_run
+
+
+
+
+
 
 
 ### ----- Piner plot - Catch_LC1 ----------- ###
