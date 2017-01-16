@@ -304,7 +304,6 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 ### ----- sens runs ----------- ###
 	sens_base_dir <- file.path(main_dir, "sens_base")
-	unlink(sens_base_dir, TRUE)
 	dir.create(sens_base_dir, showWarnings=FALSE)	
 
 	## setup dirs
@@ -348,6 +347,137 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 	start_run <- Sys.time()
 	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=sens_base_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]])
 	end_run <- Sys.time() - start_run
+
+
+
+
+############################################################
+#### check model fits
+############################################################
+
+	set.seed(143)
+	iter <- sample(1:100,1)
+########### high ESS
+##### Medium-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+
+##### Short-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base ---*** HITTING UPPER BOUND ON ESTIMATION OF SIGMAR, NON-CONVERGENCE
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+
+##### Long-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+
+########### lower ESS
+##### Medium-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+
+##### Short-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_100\\LH_Short\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base ---*** HITTING UPPER BOUND ON ESTIMATION OF SIGMAR, ESTIMATING F VERY HIGH (although truth is very high)
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+
+##### Long-lived
+## equilibrium
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_100\\LH_Long\\F_Constant\\R_Constant")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
+## base - lower sigmaR
+LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR")
+LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR")
+
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+
 
 
 
