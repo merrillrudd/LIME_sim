@@ -51,7 +51,7 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 
 	## setup scenario life history list
 	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.01, rho=0)
-	# lh_fig(lh=lh_list, save=FALSE)
+	lh_fig(lh=lh_list, save=TRUE)
 
 	### ----- use parallel cores -----------###
 	registerDoParallel(cores=8)	
