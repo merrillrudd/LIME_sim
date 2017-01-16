@@ -24,6 +24,11 @@ if(recalc==TRUE){
 				if(is.na(s[2])){
 					converge[i,m] <- 0
 					next
+				}
+
+				if(file.exists(file.path(dirs[m], itervec[i], "high_final_gradient.txt"))){
+					converge[i,m] <- 0
+					next
 				}	
 
 				dev[i,m] <- rep$SPR_t[length(rep$SPR_t)] - true$SPR_t[length(true$SPR_t)]	
