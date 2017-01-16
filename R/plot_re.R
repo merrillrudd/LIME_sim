@@ -5,6 +5,7 @@ if(recalc==TRUE){
 	### ------- check output ------###
 	dev <- esterr <- matrix(NA, nrow=length(itervec), ncol=length(dirs))
 	converge <- matrix(1, nrow=length(itervec), ncol=length(dirs))
+	bound <- matrix(0, nrow=length(itervec), ncol=length(dirs))
 	for(m in 1:length(dirs)){
 		for(i in 1:length(itervec)){
 			true <- readRDS(file.path(dirs[m], itervec[i], "True.rds"))	
@@ -28,6 +29,11 @@ if(recalc==TRUE){
 
 				if(file.exists(file.path(dirs[m], itervec[i], "high_final_gradient.txt"))){
 					converge[i,m] <- 0
+					next
+				}	
+
+				if(rep$sigma_R==2){
+					bound[i,m] <- 1
 					next
 				}	
 
@@ -75,7 +81,7 @@ for(ff in 1:nf){
 			text(x=1:length(index), y=0.8*ylim[2], round(precision[index],3), cex=2, col="red")
 			text(x=1:length(index), y=0.7*ylim[2], round(bias[index],3), cex=2, col="blue")
 			if(all(is.na(cover))==FALSE) text(x=1:length(lime_index), y=0.6*ylim[2], colSums(cover[,lime_index])/nrow(cover), cex=2, col="forestgreen")
-			text(x=1:length(index), y=0.5*ylim[2], round(converge[index],2), cex=2, col="gray")
+			text(x=1:length(lime_index), y=0.5*ylim[2], round(bound[lime_index],3), cex=2, col=gray(0.3))
 		}
 		if(ff==nf) axis(1, at=1:length(index), labels=names[index], cex.axis=1.4)
 		if(ll==1) axis(2, at=pretty(ylim), cex=1.2, las=2, cex.axis=1.4)
