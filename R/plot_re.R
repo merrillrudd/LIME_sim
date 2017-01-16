@@ -35,6 +35,11 @@ if(recalc==TRUE){
 				if(rep$sigma_R==2){
 					bound[i,m] <- 1
 					next
+				}
+
+				if(any(round(rep$F_t)==20)){
+					bound[i,m] <- 1
+					next
 				}	
 
 				dev[i,m] <- rep$SPR_t[length(rep$SPR_t)] - true$SPR_t[length(true$SPR_t)]	
