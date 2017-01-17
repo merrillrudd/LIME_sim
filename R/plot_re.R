@@ -86,7 +86,7 @@ for(ff in 1:nf){
 			text(x=1:length(index), y=0.8*ylim[2], round(precision[index],3), cex=2, col="red")
 			text(x=1:length(index), y=0.7*ylim[2], round(bias[index],3), cex=2, col="blue")
 			if(all(is.na(cover))==FALSE) text(x=1:length(lime_index), y=0.6*ylim[2], colSums(cover[,lime_index])/nrow(cover), cex=2, col="forestgreen")
-			text(x=1:length(lime_index), y=0.5*ylim[2], bound[,lime_index]/nrow(bound), cex=2, col=gray(0.3))
+			# text(x=1:length(lime_index), y=0.5*ylim[2], bound[,lime_index]/nrow(bound), cex=2, col=gray(0.3))
 		}
 		if(ff==nf) axis(1, at=1:length(index), labels=names[index], cex.axis=1.4)
 		if(ll==1) axis(2, at=pretty(ylim), cex=1.2, las=2, cex.axis=1.4)
@@ -106,5 +106,6 @@ Outs$bias <- bias
 Outs$precision <- precision
 Outs$esterr <- esterr
 Outs$converge <- converge
+Outs$bound <- bound
 return(Outs)
 }
