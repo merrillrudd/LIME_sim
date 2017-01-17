@@ -11,8 +11,8 @@ plot_re2 <- function(dirs, xlab, ylim, itervec){
 		esterr[itervec[i],3] <- (log(rep3$SPR_t[length(rep3$SPR_t)])-log(true$SPR_t[length(true$SPR_t)]))
 	}
 	plot(x=1,y=1,type="n", xlim=c(0,length(dirs)+1), ylim=ylim, xaxs="i", yaxs="i", xaxt="n", yaxt="n")
-	axis(2, las=2, cex.axis=1.5)
-	axis(1, at=1:length(dirs), labels=xlab)
+	axis(2, las=2, cex.axis=2)
+	axis(1, at=1:length(dirs), labels=xlab, cex.axis=2)
 	abline(h=0, col=gray(0.4))
 	par(new=TRUE)
 	boxplot(esterr, xaxs="i", yaxs="i", xlim=c(0,length(dirs)+1), ylim=ylim, xaxt="n", yaxt="n", col="tomato")
