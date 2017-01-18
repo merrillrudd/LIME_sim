@@ -164,6 +164,70 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	base_res <- plot_re(dirs=dir_esshigh, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_1000"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverhigh$cover, ylim=c(-1,1))
 	dev.off()
 
+	### plot base truths
+	plot_vec <- base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec)]
+	par(mfrow=c(3,3), mar=c(0,4,0,0), omi=c(1,1,0.5,0.5))
+	##Fishing
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,20), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+	axis(2,las=2,cex.axis=1.5)
+	mtext("Fishing\nmortality", side=2, line=3, cex=2)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[1], iter, "True.rds"))
+		lines(true$F_t, col="#AA000050")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,10), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[2], iter, "True.rds"))
+		lines(true$F_t, col="#AA000050")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,2), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[3], iter, "True.rds"))
+		lines(true$F_t, col="#AA000050")
+	}
+	## Recruitment
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,10), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+		axis(2,las=2,cex.axis=1.5)
+		mtext("Recruitment", side=2, line=3, cex=2)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[1], iter, "True.rds"))
+		lines(true$R_t, col="#0000AA50")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,10), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[2], iter, "True.rds"))
+		lines(true$R_t, col="#0000AA50")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,10), xaxs="i", yaxs="i", ylab="", xaxt="n", yaxt="n")
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[3], iter, "True.rds"))
+		lines(true$R_t, col="#0000AA50")
+	}
+	## SPR
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,1), xaxs="i", yaxs="i", ylab="",  yaxt="n", cex.axis=1.5)
+		axis(2,las=2,cex.axis=1.5)
+		mtext("SPR", side=2, line=3, cex=2)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[1], iter, "True.rds"))
+		lines(true$SPR_t, col="#00AA0050")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,1), xaxs="i", yaxs="i", ylab="",  yaxt="n", cex.axis=1.5)
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[2], iter, "True.rds"))
+		lines(true$SPR_t, col="#00AA0050")
+	}
+	plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,1), xaxs="i", yaxs="i", ylab="",  yaxt="n", cex.axis=1.5)
+		axis(2,las=2,cex.axis=1.5)
+	for(iter in itervec){
+		true <- readRDS(file.path(plot_vec[3], iter, "True.rds"))
+		lines(true$SPR_t, col="#00AA0050")
+	}
+	mtext(side=1, "Year", outer=TRUE, line=3, cex=2)
 
 ### ----- base runs - sigR lower----------- ###
 	base_lowsigR_dir <- file.path(main_dir, "base_lowsigR")
@@ -285,6 +349,7 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=sens_equil_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]])
 	end_run <- Sys.time() - start_run
 
+
 ############################################################
 #### sensitivities - base
 ############################################################
@@ -350,6 +415,571 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 
 
+##### sensitivity plot
+######## HIGH ESS
+png(file.path(fig_dir, "SensM_ESShigh_LC10.png"), height=8, width=14, units="in", res=200)
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensLinf_ESShigh_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-10,4), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-10,4), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-10,4), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensVBK_ESShigh_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+
+
+png(file.path(fig_dir, "SensML50_ESShigh_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensCVlen_ESShigh_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_1000\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_1000\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_1000\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_1000\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+
+#### LOW ESS
+png(file.path(fig_dir, "SensM_ESSlow_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\low\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\M\\high\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\low\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\M\\high\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensLinf_ESSlow_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\low\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\linf\\high\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\low\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\linf\\high\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensVBK_ESSlow_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\low\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\vbk\\high\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\low\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\vbk\\high\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+
+
+png(file.path(fig_dir, "SensML50_ESSlow_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\low\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\ML50\\high\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\low\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\ML50\\high\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
+
+
+png(file.path(fig_dir, "SensCVlen_ESSlow_LC10.png"), height=8, width=14, units="in", res=200)
+##### sensitivity plot
+par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+########## Equilibrium
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_100\\LH_Short\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+axis(2, cex.axis=2, las=2)
+mtext("Short", cex=2, side=3, line=1)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_100\\LH_Medium\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Medium", cex=2, side=3, line=1)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\low\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_equil\\CVlen\\high\\LC10\\ESS_100\\LH_Long\\F_Constant\\R_Constant"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, xaxt="n", yaxt="n")
+mtext("Long", cex=2, side=3, line=1)
+mtext("Equilibrium", cex=2, side=4, line=1)
+
+
+########## Base
+## short
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_100\\LH_Short\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(2, cex.axis=2, las=2)
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## medium
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_100\\LH_Medium\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+
+## long
+path1 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\low\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path2 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+path3 <- "F:\\Merrill\\Git_Projects\\LIME_sim\\sens_base\\CVlen\\high\\LC10\\ESS_100\\LH_Long\\F_Endogenous\\R_AR"
+plot_re2(dirs=c(path1,path2,path3), ylim=c(-2.5,2.5), itervec=itervec, yaxt="n", xaxt="n")
+axis(1, at=1:3, labels=c("-25%", "true", "+25%"), cex.axis=2)
+mtext("Variability", cex=2, side=4, line=1)
+mtext("Estimation error", outer=TRUE, side=2, line=3, cex=1.5)
+mtext("Fixed value", outer=TRUE, side=1, line=3, cex=1.5)
+dev.off()
 
 ############################################################
 #### check model fits
@@ -383,19 +1013,19 @@ res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
 LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LC10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant")
 LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\equil\\LBSPR10\\ESS_1000\\LH_Short\\F_Constant\\R_Constant")
 
-res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=3)
 
 ## base ---*** HITTING UPPER BOUND ON ESTIMATION OF SIGMAR, NON-CONVERGENCE
 LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
 LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base\\LBSPR10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
 
-res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=15)
 
 ## base - lower sigmaR
 LIME_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LC10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
 LBSPR_dir <- file.path("F:\\Merrill\\Git_Projects\\LIME_sim\\base_lowsigR\\LBSPR10\\ESS_1000\\LH_Short\\F_Endogenous\\R_AR")
 
-res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
+res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=15)
 
 
 ##### Long-lived
