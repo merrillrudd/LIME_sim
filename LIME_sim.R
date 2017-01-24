@@ -58,8 +58,48 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
-	foreach(loop=1:length(equil_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=equil_dir_vec[loop], data_avail=as.character(equil_modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(strsplit(equil_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(equil_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(equil_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
+	foreach(loop=1:length(equil_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=equil_dir_vec[loop], data_avail=as.character(equil_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(equil_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(equil_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(equil_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE, init_depl="random")
 	end_gen <- Sys.time() - start_gen
+
+	## plot equilibrium scenarios
+	dirs <- equil_dir_vec[grepl("ESS_1000/",equil_dir_vec) & grepl("Index_Catch_LC20",equil_dir_vec)]
+	par(mfrow=c(3,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+	for(dd in 1:length(dirs)){
+		plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,10),axes=F,ann=F)
+		for(ii in 1:length(itervec)){
+			true <- readRDS(file.path(dirs[dd],itervec[ii],"True.rds"))
+			lines(true$F_t, col="#AA000050", lwd=2)
+		}
+		if(dd==1){
+			axis(2, las=2, cex=1.5)
+			mtext(side=2, "Fishing mortality", cex=1.5, line=4)
+		}
+		mtext(side=3, lh_vec[dd], cex=1.5, line=1.5)
+	}
+	for(dd in 1:length(dirs)){
+		plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,4),axes=F,ann=F)
+		for(ii in 1:length(itervec)){
+			true <- readRDS(file.path(dirs[dd],itervec[ii],"True.rds"))
+			lines(true$R_t, col="#0000AA50", lwd=2)
+		}
+		if(dd==1){
+			axis(2, las=2, cex=1.5)
+			mtext(side=2, "Recruitment", cex=1.5, line=4)
+		}
+	}
+	for(dd in 1:length(dirs)){
+		plot(x=1,y=1,type="n",xlim=c(1,20),ylim=c(0,1.5),axes=F,ann=F)
+		for(ii in 1:length(itervec)){
+			true <- readRDS(file.path(dirs[dd],itervec[ii],"True.rds"))
+			lines(true$D_t, col="#00AA0050", lwd=2)
+		}
+		if(dd==1){
+			axis(2, las=2, cex=1.5)
+			mtext(side=2, "Relative biomass", cex=1.5, line=4)
+		}
+		axis(1, cex=1.5)
+	}
+	mtext(side=1, "Year", outer=TRUE, cex=1.5, line=3.5)
 
 	### ----- run LIME -----------###
 	lime_dirs <- equil_dir_vec[which(grepl("LBSPR",equil_dir_vec)==FALSE)]
@@ -130,7 +170,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
-	foreach(loop=1:length(base_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_dir_vec[loop], data_avail=as.character(base_modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(strsplit(base_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(base_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(base_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
+	foreach(loop=1:length(base_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_dir_vec[loop], data_avail=as.character(base_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(base_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(base_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(base_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
 	end_gen <- Sys.time() - start_gen
 
 	### ----- run LIME -----------###
@@ -247,7 +287,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 
 	### ----- generate data -----------###
 	start_gen <- Sys.time()
-	foreach(loop=1:length(base_lowsigR_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_lowsigR_dir_vec[loop], data_avail=as.character(base_modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(strsplit(base_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(base_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(base_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
+	foreach(loop=1:length(base_lowsigR_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=base_lowsigR_dir_vec[loop], data_avail=as.character(base_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(base_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(base_modcombos[loop,"Rdyn"],"_")[[1]][2]), write=TRUE, lh=lh_list[[as.character(strsplit(base_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=20, comp_sample=as.numeric(strsplit(base_modcombos[loop,"ESS"],"_")[[1]][2]), rewrite=FALSE)
 	end_gen <- Sys.time() - start_gen
 
 	### ----- run LIME -----------###
@@ -1141,7 +1181,7 @@ res <- plot_output(LIME_dir=LIME_dir, LBSPR_dir=LBSPR_dir, sim=TRUE, iter=iter)
 		dir <- file.path(sens_dir1_vec[loop], paste0("R0_", R0_vec[i]))
 		dir.create(dir, showWarnings=FALSE)
 
-		ignore <- generate_data(modpath=dir, data_avail=as.character(modcombos[loop,"Data_avail"]), itervec=itervec, spatial=FALSE, Fdynamics=as.character(modcombos[loop,"Fdyn"]), Rdynamics="Constant", write=TRUE, lh=lh_list[[as.character(modcombos[loop,"LH"])]], Nyears=info$Nyears, comp_sample=info$comp_sample, rewrite=FALSE)
+		ignore <- generate_data(modpath=dir, data_avail=as.character(modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(modcombos[loop,"Fdyn"]), Rdynamics="Constant", write=TRUE, lh=lh_list[[as.character(modcombos[loop,"LH"])]], Nyears=info$Nyears, comp_sample=info$comp_sample, rewrite=FALSE)
 
 	### ----- run LIME -----------###
 		ignore <- run_LIME(modpath=dir, lh=lh_list[[as.character(modcombos[loop,"LH"])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, write=TRUE, fix_param="beta", param_adjust="R0", val_adjust=R0_vec[i])
