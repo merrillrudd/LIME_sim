@@ -14,7 +14,7 @@ if(recalc==TRUE){
 				rep <- readRDS(file.path(dirs[m], itervec[i], "Report.rds"))
 				sdrep <- readRDS(file.path(dirs[m], itervec[i], "Sdreport.rds"))
 				inp <- readRDS(file.path(dirs[m], itervec[i], "Inputs.rds"))	
-				der <- readRDS(file.path(dirs[m], itervec[i], "Derived_quants.rds"))	
+				# der <- readRDS(file.path(dirs[m], itervec[i], "Derived_quants.rds"))	
 
 				if(all(is.na(sdrep))){
 					converge[i,m] <- 0

@@ -6,7 +6,13 @@ for(m in 1:length(dirs)){
 	for(i in 1:length(itervec)){
 			
 			true <- readRDS(file.path(dirs[m], itervec[i], "True.rds"))
-			sdrep <- readRDS(file.path(dirs[m], itervec[i], "Sdreport.rds"))
+			if(file.exists(file.path(dirs[m], itervec[i], "Sdreport.rds"))) sdrep <- readRDS(file.path(dirs[m], itervec[i], "Sdreport.rds"))
+			if(file.exists(file.path(dirs[m], itervec[i], "Sdreport.rds"))==FALSE){
+				cover[i,m] <- NA
+				converge[i,m] <- NA
+				next
+			} 
+
 
 			if(all(is.na(sdrep))){
 				converge[i,m] <- 0
