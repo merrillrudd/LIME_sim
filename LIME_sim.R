@@ -95,8 +95,9 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 	lbspr_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=TRUE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), write=TRUE, fix_param=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), write=TRUE, fix_param=FALSE)
 	end_run <- Sys.time() - start_run
+
 
 	### ----- run LBSPR -----------###	
 
@@ -110,9 +111,9 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 	dir_esslow <- equil_dir_vec[grepl("ESS_100/", equil_dir_vec)]
 	dir_esshigh <- equil_dir_vec[grepl("ESS_1000", equil_dir_vec)]
 	
-	equil_coverlowest <- interval_coverage(dirs=dir_esslowest[which(grepl("LBSPR",dir_esslowest)==FALSE)], itervec=itervec)
-	equil_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
-	equil_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
+	equil_coverlowest <- interval_coverage(dirs=dir_esslowest[which(grepl("LBSPR",dir_esslowest)==FALSE)], itervec=itervec) ## 19
+	equil_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec) ## 13
+	equil_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec) ## 22
 
 	png(file.path(fig_dir, "Equilibrium_ESSlowest_RE.png"), height=10, width=25, res=200, units="in")
 	equil_res <- plot_re(dirs=dir_esslowest, modcombos=equil_modcombos[which(equil_modcombos$ESS=="ESS_20"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=equil_coverlowest$cover, ylim=c(-1,1))
@@ -181,15 +182,15 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	plot_scenarios(dirs=base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec) & grepl("Ramp", base_dir_vec)], itervec=itervec)
 	dev.off()
 
-		##plot base scenarios
-	png(file.path(fig_dir, "Base_Increasing_scenarios.png"), height=10, width=12, res=200, units="in")
-	plot_scenarios(dirs=base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec) & grepl("Increasing", base_dir_vec)], itervec=itervec)
-	dev.off()
+	# 	##plot base scenarios
+	# png(file.path(fig_dir, "Base_Increasing_scenarios.png"), height=10, width=12, res=200, units="in")
+	# plot_scenarios(dirs=base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec) & grepl("Increasing", base_dir_vec)], itervec=itervec)
+	# dev.off()
 
-			##plot base scenarios
-	png(file.path(fig_dir, "Base_Decreasing_scenarios.png"), height=10, width=12, res=200, units="in")
-	plot_scenarios(dirs=base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec) & grepl("Decreasing", base_dir_vec)], itervec=itervec)
-	dev.off()
+	# 		##plot base scenarios
+	# png(file.path(fig_dir, "Base_Decreasing_scenarios.png"), height=10, width=12, res=200, units="in")
+	# plot_scenarios(dirs=base_dir_vec[grepl("ESS_1000/",base_dir_vec) & grepl("Index_Catch_LC20",base_dir_vec) & grepl("Decreasing", base_dir_vec)], itervec=itervec)
+	# dev.off()
 
 
 	### ----- run LIME -----------###
@@ -199,29 +200,23 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=TRUE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2))
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
 	end_run <- Sys.time() - start_run
 
 
 	### ----- run LBSPR -----------###	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=TRUE, simulation=TRUE)
+	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=FALSE, simulation=TRUE)
 	end_altrun <- Sys.time() - start_run	
 
 	### ------- check output ------###	
-	dir_esslowest <- base_dir_vec[grepl("ESS_20/",base_dir_vec)]
 	dir_esslow <- base_dir_vec[grepl("ESS_100/", base_dir_vec)]
 	dir_esshigh <- base_dir_vec[grepl("ESS_1000", base_dir_vec)]
 	
-	base_coverlowest <- interval_coverage(dirs=dir_esslowest[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
 	base_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
 	base_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
 
-
-	png(file.path(fig_dir, "Base_ESSlowest_RE.png"), height=10, width=25, res=200, units="in")
-	base_res <- plot_re(dirs=dir_esslowest, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverlowest$cover, ylim=c(-1,1))
-	dev.off()
 
 	png(file.path(fig_dir, "Base_ESSlow_RE.png"), height=10, width=25, res=200, units="in")
 	base_res <- plot_re(dirs=dir_esslow, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverlow$cover, ylim=c(-1,1))
@@ -327,7 +322,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	# when written using parallel cores, sometimes files not writing properly
 	start_regen <- Sys.time()
 	for(loop in 1:length(rich_dir)){
-		copy_sim(fromdir=rich_dir[loop], fromcombos=rich_modcombos[loop,], todir=alt_dir, itervec=itervec, rewrite=FALSE, res_dir="base")
+		copy_sim(fromdir=rich_dir[loop], fromcombos=rich_modcombos[loop,], todir=alt_dir, itervec=itervec, rewrite=FALSE, res_dir="base_lowsigR")
 	}
 	end_regen <- Sys.time() - start_regen
 
@@ -339,7 +334,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2))
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
 	end_run <- Sys.time() - start_run
 
 	### ----- run LBSPR -----------###	
@@ -349,18 +344,12 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	end_altrun <- Sys.time() - start_run	
 
 	### ------- check output ------###	
-	dir_esslowest <- base_lowsigR_dir_vec[grepl("ESS_20/",base_lowsigR_dir_vec)]
 	dir_esslow <- base_lowsigR_dir_vec[grepl("ESS_100/", base_lowsigR_dir_vec)]
 	dir_esshigh <- base_lowsigR_dir_vec[grepl("ESS_1000", base_lowsigR_dir_vec)]
 	
-	base_coverlowest <- interval_coverage(dirs=dir_esslowest[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
 	base_coverlow <- interval_coverage(dirs=dir_esslow[which(grepl("LBSPR",dir_esslow)==FALSE)], itervec=itervec)
 	base_coverhigh <- interval_coverage(dirs=dir_esshigh[which(grepl("LBSPR",dir_esshigh)==FALSE)], itervec=itervec)
 
-
-	png(file.path(fig_dir, "Base_lowsigR_ESSlowest_RE.png"), height=10, width=25, res=200, units="in")
-	base_res <- plot_re(dirs=dir_esslowest, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverlowest$cover, ylim=c(-1,1))
-	dev.off()
 
 	png(file.path(fig_dir, "Base_lowsigR_ESSlow_RE.png"), height=10, width=25, res=200, units="in")
 	base_res <- plot_re(dirs=dir_esslow, modcombos=base_modcombos[which(base_modcombos$ESS=="ESS_100"),], itervec=itervec, compareToLH=paste0("F_", Fdyn_vec), lh_vec=lh_vec, cover=base_coverlow$cover, ylim=c(-1,1))
@@ -388,7 +377,7 @@ val_vec <- c("high", "low")
 
 sens_equil_modcombos <- expand.grid("Param"=input_vec, "Adjust"=val_vec, "Data_avail"=data_vec, "ESS"=paste0("ESS_", ESS_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
 sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
-	sens_equil_modcombos$C_opt[which(grepl("Catch",sens_equil_modcombos[,"Data_avail"]))] <- 1
+	sens_equil_modcombos$C_opt[which(grepl("Catch",sens_equil_modcombos[,"Data_avail"]))] <- 2
 
 ### ----- sens runs ----------- ###
 	sens_equil_dir <- file.path(main_dir, "sens_equil")
@@ -400,7 +389,7 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 	ignore <- sapply(1:length(sens_equil_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(sens_equil_dir_vec[m], x), showWarnings=FALSE)))	
 
 	## equilibrium
-	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.01, rho=0)
+	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0)
 
 	## matrix of sensitivity values
 	sens_vals <- NULL
@@ -420,21 +409,20 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 
 	### ----- generate data -----------###
 	## copy data files from similar previous directory
-	alt_dirs <- rep(NA, length(sens_equil_dir_vec))
-	## find directory
-	for(i in 1:length(alt_dirs)){
-		xdir <- equil_dir_vec[grepl(paste0("/",sens_equil_modcombos[i,"Data_avail"]),equil_dir_vec)&grepl(paste0(sens_equil_modcombos[i,"ESS"],"/"),equil_dir_vec)&grepl(sens_equil_modcombos[i,"LH"],equil_dir_vec)&grepl(sens_equil_modcombos[i,"Fdyn"],equil_dir_vec)&grepl(sens_equil_modcombos[i,"Rdyn"],equil_dir_vec)]
-		if(length(xdir)>1) break
-		alt_dirs[i] <- xdir
+	init_dir <- equil_dir_vec[grepl("/LC10/",equil_dir_vec) & grepl("ESS_20",equil_dir_vec)==FALSE]
+	init_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail=="LC10" & equil_modcombos$ESS!="ESS_20"),]
+	alt_dir <- sens_equil_dir_vec
+	alt_modcombos <- sens_equil_modcombos
+
+	start_regen <- Sys.time()
+	for(loop in 1:length(init_dir)){
+		copy_sim(fromdir=init_dir[loop], fromcombos=init_modcombos[loop,], todir=alt_dir, itervec=itervec, rewrite=FALSE, res_dir="sens_equil", sensitivity=TRUE)
 	}
-	## copy to directory
-	for(i in 1:length(alt_dirs)){
-		ignore <- sapply(1:length(itervec), function(x) file.copy(from=file.path(alt_dirs[i],x,"True.rds"), to=file.path(sens_equil_dir_vec[i],x)))
-	}
+	end_regen <- Sys.time() - start_regen
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=sens_equil_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]])
+	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=sens_equil_modcombos[loop,"Param"], val_adjust=sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]], LFdist=1, Sel0=1)
 	end_run <- Sys.time() - start_run
 
 
