@@ -62,7 +62,7 @@ if(recalc==TRUE){
 
 nf <- length(compareToLH)
 nl <- length(lh_vec)
-# col_vec <- brewer.pal(3, "Set1")
+col_vec <- brewer.pal(3, "Set1")
 names <- gsub("_", "\n", modcombos[,"Data_avail"])
 bias <- sapply(1:length(dirs), function(x) median(abs(dev[,x]), na.rm=TRUE))
 precision <- sapply(1:length(dirs), function(x) sqrt((1/nrow(dev))*sum(dev[,x]^2, na.rm=TRUE)))
@@ -72,16 +72,16 @@ lime_dirs <- dirs[which(grepl("LBSPR",dirs)==FALSE)]
 par(mfrow=c(nf,nl), mar=c(0,0,0,0), omi=c(0.75,0.75,1,1))
 for(ff in 1:nf){
 	for(ll in 1:nl){
-		index <- which(grepl(compareToLH[ff],dirs) & grepl(lh_vec[ll],dirs))
+		index <- which(grepl(paste0(compareToLH[ff],"/"),dirs) & grepl(lh_vec[ll],dirs))
 		lime_index <- which(grepl(compareToLH[ff],lime_dirs) & grepl(lh_vec[ll],lime_dirs))
 		if(length(index)==1) xmax <- 1.5
 		if(length(index)>1) xmax <- ncol(esterr[,index]) + 0.5
 
-		# beanplot(as.data.frame(esterr[,index]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", lwd=3, na.rm=TRUE, xaxs="i", yaxs="i", what=c(0,1,1,0), add=TRUE, beanlines="median", beanlinewd=3)
 		plot(x=1, y=1, type="n", xaxs="i", yaxs="i", xlab="", ylab="", xlim=c(0.5,xmax), ylim=ylim, xaxt="n", yaxt="n")
+		beanplot(as.data.frame(esterr[,index]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", lwd=3, na.rm=TRUE, xaxs="i", yaxs="i", what=c(0,1,1,0), add=TRUE, beanlines="median", beanlinewd=3)
 		abline(h=0, lwd=5, col="red")
-		par(new=TRUE)
-		boxplot(esterr[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
+		# par(new=TRUE)
+		# boxplot(esterr[,index], ylim=ylim, xaxt="n", yaxt="n", col="goldenrod", xlim=c(0.5, xmax), xaxs="i", yaxs="i")
 		if(text==TRUE){
 			text(x=1:length(index), y=0.8*ylim[2], round(precision[index],3), cex=2, col="red")
 			text(x=1:length(index), y=0.7*ylim[2], round(bias[index],3), cex=2, col="blue")
