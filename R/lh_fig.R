@@ -28,7 +28,7 @@ if(save==TRUE) png(file.path(fig_dir, "Life_history_comparison.png"), height=5, 
 
 
 		par(new=TRUE)
-		plot(lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=c(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$L_a)))), xlim=c(1, max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$AgeMax + 1)))), xlab="", ylab="", xaxt="n", yaxt="n")
+		plot(lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=c(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$L_a)))), xlim=c(1, lh[[ll]]$AgeMax + 1), xlab="", ylab="", xaxt="n", yaxt="n")
 		if(length(lh)==4){
 			if(ll==2) axis(4, at=seq(10,50,by=10), las=2, cex.axis=1.2, col="blue", col.axis="blue")
 			if(ll==4) axis(4, at=seq(0,50,by=10), las=2, cex.axis=1.2, col="blue", col.axis="blue")
