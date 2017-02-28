@@ -12,7 +12,7 @@
 #' @export
 copy_sim <- function(fromdir, fromcombos, todir, itervec, rewrite, res_dir, sensitivity=FALSE){
 
-	subto <- todir[grepl(fromcombos$ESS,todir) & grepl(fromcombos$LH,todir) & grepl(fromcombos$Fdyn,todir) & grepl(fromcombos$Rdyn,todir)]
+	subto <- todir[grepl(fromcombos$SampleSize,todir) & grepl(fromcombos$LH,todir) & grepl(fromcombos$Fdyn,todir) & grepl(fromcombos$Rdyn,todir)]
 	if(sensitivity==FALSE) data_avail <- sapply(1:length(subto), function(x) strsplit(strsplit(subto[x], paste0(res_dir, "/"))[[1]][2],"/")[[1]][1])
 	if(sensitivity==TRUE) data_avail <- sapply(1:length(subto), 
 		function(x){
