@@ -98,6 +98,8 @@ run_LBSPR <- function(modpath, lh, data_avail, itervec=NULL, species=NULL, rewri
         LB_lengths@NYears <- Nyears_comp
         
         lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="absel")), error=function(e) NA)
+        # lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="GTG")), error=function(e) NA)
+
 
         if(all(is.na(lbspr_res))==FALSE){
           LBSPR_outs <- list()
