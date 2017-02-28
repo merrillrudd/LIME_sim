@@ -1,6 +1,6 @@
 bias_precision <- function(dirs, itervec, param="SPR"){
 
-	dev <- esterr <- matrix(NA, nrow=length(itervec), ncol=length(dirs))
+	dev <- relerr <- esterr <- matrix(NA, nrow=length(itervec), ncol=length(dirs))
 	converge <- matrix(1, nrow=length(itervec), ncol=length(dirs))
 	bound <- matrix(0, nrow=length(itervec), ncol=length(dirs))
 
@@ -35,11 +35,19 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 				if(param=="SPR"){
 					dev[i,m] <- rep$SPR_t[length(rep$SPR_t)] - true$SPR_t[length(true$SPR_t)]	
 					esterr[i,m] <- log(rep$SPR_t[length(rep$SPR_t)]) - log(true$SPR_t[length(true$SPR_t)])
+					relerr[i,m] <- (rep$SPR_t[length(rep$SPR_t)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_t)]
 				}
 
 				if(param=="SigmaR"){
 					dev[i,m] <- rep$sigma_R - true$SigmaR
 					esterr[i,m] <- log(rep$sigma_R) - log(true$SigmaR)
+					relerr[i,m] <- (rep$sigma_R - true$SigmaR)/true$SigmaR
+				}
+
+				if(param=="F"){
+					dev[i,m] <- rep$F_t[length(rep$F_t)] - true$F_t[length(true$F_t)]
+					esterr[i,m] <- log(rep$F_t[length(rep$F_t)]) - log(true$F_t[length(true$F_t)])
+					relerr[i,m] <- (rep$F_t[length(rep$F_t)] - true$F_t[length(true$F_t)])/true$F_t[length(true$F_t)]
 				}
 			}
 			if(grepl("LBSPR", dirs[m])){
@@ -52,6 +60,7 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 				if(param=="SPR"){
 					dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])
 					esterr[i,m] <- log(rep$SPR[length(rep$SPR)]) - log(true$SPR_t[length(true$SPR_t)])
+					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_t)]
 				}
 			}	
 		}
