@@ -37,7 +37,7 @@ if(save==TRUE) png(file.path(fig_dir, "Life_history_comparison.png"), height=5, 
 		}
 		if(length(lh)==3){
 			if(ll==3) axis(4, at=seq(0,100,by=10), las=2, cex.axis=1.2, col="blue", col.axis="blue")
-			axis(1, at=seq(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$AgeMax))), by=4), cex.axis=1.2)
+			axis(1, at=pretty(c(1, (lh[[ll]]$AgeMax + 1))), labels=pretty(c(1, (lh[[ll]]$AgeMax + 1)))-1, cex.axis=1.2)
 		}
 		if(ll==length(lh)) legend("bottomright", legend=c("Selectivity", "Maturity", "Length"), col=c("black", "gray", "blue"), lty=c(1,3,1), lwd=4, cex=1.2)
 		print.letter(paste0("(", letters[ll], ")"), xy=c(0.75,0.93), cex=1.3, font=2)
