@@ -6,7 +6,7 @@ if(save==TRUE) png(file.path(fig_dir, "Life_history_comparison.png"), height=5, 
 	if(length(lh)==5) par(mfrow=c(3,2), mar=c(0,0,0,0), omi=c(1,1,1,1))
 
 	for(ll in 1:length(lh)){
-		plot(lh[[ll]]$Mat_a, type="l", lwd=4, ylim=c(0,1), xaxs="i", yaxs="i", xlim=c(1, max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$AgeMax + 1)))), xpd=NA, xlab="", ylab="", xaxt="n", yaxt="n")
+		plot(lh[[ll]]$Mat_a, type="l", lwd=4, ylim=c(0,1), xaxs="i", yaxs="i", xlim=c(1, lh[[ll]]$AgeMax + 1), xpd=NA, xlab="", ylab="", xaxt="n", yaxt="n")
 		lines(lh[[ll]]$S_a, lty=3, lwd=4, col="gray", xpd=NA)
 		if(length(lh)==4){
 			if(ll==1) axis(2, at=seq(0.2,1,by=0.2), cex.axis=1.2, las=2)
