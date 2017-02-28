@@ -49,6 +49,11 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 					esterr[i,m] <- log(rep$F_t[length(rep$F_t)]) - log(true$F_t[length(true$F_t)])
 					relerr[i,m] <- (rep$F_t[length(rep$F_t)] - true$F_t[length(true$F_t)])/true$F_t[length(true$F_t)]
 				}
+				if(param=="S50"){
+					dev[i,m] <- rep$S50 - true$SL50
+					esterr[i,m] <- log(rep$S50) - log(true$SL50)
+					relerr[i,m] <- (rep$S50 - true$SL50)/true$SL50
+				}
 			}
 			if(grepl("LBSPR", dirs[m])){
 				if(file.exists(file.path(dirs[m], itervec[i], "non_convergence.txt"))){
@@ -61,6 +66,16 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 					dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])
 					esterr[i,m] <- log(rep$SPR[length(rep$SPR)]) - log(true$SPR_t[length(true$SPR_t)])
 					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_t)]
+				}
+				if(param=="S50"){
+					dev[i,m] <- rep$SL50[length(rep$SL50)] - true$SL50
+					esterr[i,m] <- log(rep$SL50[length(rep$SL50)]) - log(true$SL50)
+					relerr[i,m] <- (rep$SL50[length(rep$SL50)] - true$SL50)/true$SL50
+				}
+				if(param=="F"){
+					dev[i,m] <- rep$FM[length(rep$FM)]/true$M - true$F_t[length(true$F_t)]/true$M
+					esterr[i,m] <- log(rep$FM[length(rep$FM)]/true$M) - log(true$F_t[length(true$F_t)]/true$M)
+					relerr[i,m] <- ((rep$FM[length(rep$FM)]/true$M) - (true$F_t[length(true$F_t)]/true$M))/(true$F_t[length(true$F_t)]/true$M)
 				}
 			}	
 		}
