@@ -65,13 +65,11 @@ run_LBSPR <- function(modpath, lh, data_avail, itervec=NULL, species=NULL, rewri
         LB_pars@Linf <- inits$linf
         LB_pars@CVLinf <- inits$CVlen
         LB_pars@L50 <- inits$ML50 
-        id_L95 <- which(round(inits$Mat_a, 2) %in% seq(from=0.92,to=1.00,by=0.01))[1]
-        LB_pars@L95 <- inits$L_a[id_L95]
+        LB_pars@L95 <- inits$ML95
         LB_pars@MK <- inits$M/inits$vbk         
 
         LB_pars@SL50 <- inits$SL50 
-        id_SL95 <- which(round(inits$S_a, 2) %in% round(seq(from=0.92,to=1.00,by=0.01),2))[1]
-        LB_pars@SL95 <- inits$L_a[id_SL95]
+        LB_pars@SL95 <- inits$SL95
         # LB_pars@SPR <- 0.4
         # LB_pars@FM <- sim$F_t[length(sim$F_t)]/sim$M
         LB_pars@BinWidth <- inits$binwidth

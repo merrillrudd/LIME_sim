@@ -77,5 +77,6 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 	Outs$precision <- precision
 	Outs$bound <- bound
 	Outs$converge <- converge
+	Outs$relerr <- relerr
 	return(Outs)
 }
