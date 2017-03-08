@@ -13,7 +13,7 @@
 #' @return list of LBSPR output
 #' @details Must load LBSPR package: devtools::install_github("AdrianHordyk/LBSPR")
 
-run_LBSPR <- function(modpath, lh, data_avail, itervec=NULL, species=NULL, rewrite=TRUE, simulation=TRUE){
+run_LBSPR <- function(modpath, lh, itervec=NULL, species=NULL, rewrite=TRUE, simulation=TRUE){
 
 	if(simulation==FALSE) itervec <- 1
 
@@ -62,25 +62,32 @@ run_LBSPR <- function(modpath, lh, data_avail, itervec=NULL, species=NULL, rewri
         # ), validity=LBSPR:::check_pars)
 
         LB_pars <- new("LB_pars")
+
+        if(simulation==TRUE) species <- "sim"
+        if(simulation==FALSE) species <- species
+        LB_pars@Species <- species
+
+        LB_pars@MK <- inits$M/inits$vbk         
+
         LB_pars@Linf <- inits$linf
+
         LB_pars@CVLinf <- inits$CVlen
+
         LB_pars@L50 <- inits$ML50 
         LB_pars@L95 <- inits$ML95
-        LB_pars@MK <- inits$M/inits$vbk         
+
+        LB_pars@Walpha <- inits$lwa
+        LB_pars@Wbeta <- inits$lwb
 
         LB_pars@SL50 <- inits$SL50 
         LB_pars@SL95 <- inits$SL95
         # LB_pars@SPR <- 0.4
         # LB_pars@FM <- sim$F_t[length(sim$F_t)]/sim$M
         LB_pars@BinWidth <- inits$binwidth
-        LB_pars@Walpha <- inits$lwa
-        LB_pars@Wbeta <- inits$lwb
+
         LB_pars@Steepness <- inits$h
         LB_pars@R0 <- inits$R0
 
-        if(simulation==TRUE) species <- "sim"
-        if(simulation==FALSE) species <- species
-        LB_pars@Species <- species
 
         # setClass("LB_lengths", representation(
         #   LMids = "vector",
