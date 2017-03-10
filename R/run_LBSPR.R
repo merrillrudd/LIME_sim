@@ -73,6 +73,7 @@ run_LBSPR <- function(modpath, lh, input_data=NULL, itervec=NULL, species=NULL, 
         # lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="GTG")), error=function(e) NA)
 
 
+        if(isS4(lbspr_res)){
           LBSPR_outs <- list()
           LBSPR_outs$pLF <- lbspr_res@pLCatch
           LBSPR_outs$SL50 <- lbspr_res@Ests[,"SL50"]
@@ -80,10 +81,18 @@ run_LBSPR <- function(modpath, lh, input_data=NULL, itervec=NULL, species=NULL, 
           LBSPR_outs$FM <- lbspr_res@Ests[,"FM"]
           LBSPR_outs$SPR <- lbspr_res@Ests[,"SPR"]
           if(write==TRUE) saveRDS(LBSPR_outs, file.path(iterpath, "LBSPR_results.rds"))
+        }
+        if(isS4(lbspr_res)==FALSE){
+          if(write==TRUE) saveRDS("non_convergence", file.path(iterpath, "non_convergence.txt"))
+          if(write==FALSE){
+            LBSPR_outs <- NA
+          }
+        }
 
 
         rm(LB_lengths)
         rm(LB_pars)
+        rm(lbspr_res)
     }
 
 
