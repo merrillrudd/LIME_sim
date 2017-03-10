@@ -1,65 +1,41 @@
-
 #' run LBSPR within LIME framework
 #'
 #' \code{run_LBSPR} sets up LBSPR to run within LIME framework (adjusting for inputs, structure, etc.)
 #'
 #' @param modpath path to model directory
 #' @param lh life history information
+#' @param input_data list of input data including years of model and length frequency data
 #' @param itervec vector of iterates to run for simulation
 #' @param species name of species (will set as generic within LBSPR package if not specified)
 #' @param  rewrite should the assessment be re-written in the directory if it already exists?
 #' @param simulation is this a simulation or application to real data?
+#' @param write write results to directory?
 
 #' @return list of LBSPR output
 #' @details Must load LBSPR package: devtools::install_github("AdrianHordyk/LBSPR")
 
-run_LBSPR <- function(modpath, lh, itervec=NULL, species=NULL, rewrite=TRUE, simulation=TRUE){
+run_LBSPR <- function(modpath, lh, input_data=NULL, itervec=NULL, species=NULL, rewrite=TRUE, simulation=TRUE, write=TRUE){
 
-	if(simulation==FALSE) itervec <- 1
+    if(simulation==FALSE) itervec <- 1
 
-	for(iter in 1:length(itervec)){
+    for(iter in 1:length(itervec)){
 
-		if(simulation==TRUE) iterpath <- file.path(modpath, iter)
+        if(simulation==TRUE) iterpath <- file.path(modpath, iter)
         if(simulation==FALSE) iterpath <- modpath
 
-	    if(rewrite==FALSE) if(any(grepl("LBSPR_results", list.files(path=iterpath)))) next
-      if(rewrite==TRUE){
+        if(write==TRUE & rewrite==FALSE) if(any(grepl("LBSPR_results", list.files(path=iterpath)))) next
+      if(write==TRUE & rewrite==TRUE){
         if(any(grepl("non_convergence", list.files(path=iterpath)))) unlink(file.path(iterpath, "non_convergence.txt"), TRUE)
       }
 
-    if(simulation==TRUE){
+    if(write==TRUE & simulation==TRUE){
       sim <- readRDS(file.path(iterpath, "True.rds"))
       input_data <- list("years"=1:sim$Nyears, "LF"=sim$LF, "obs_per_year"=sim$obs_per_year)
     }
 
-
     inits <- create_inputs(lh=lh, input_data=input_data, param="h", val=0.99)
     Nyears <- inits$Nyears 
     Nyears_comp <- nrow(inits$LF)
-
-        
-        # ## lbspr settings
-        # setClass("LB_pars", representation(
-        #   Species = "character", 
-        #   MK = "numeric",
-        #   Linf = "numeric",
-        #   CVLinf = "numeric",
-        #   L50 = "numeric",
-        #   L95 = "numeric",
-        #   Walpha = "numeric",
-        #   Wbeta = "numeric",
-        #   FecB = "numeric",
-        #   Steepness = "numeric",
-        #   Mpow = "numeric",
-        #   R0 = "numeric",
-        #   SL50 = "numeric",
-        #   SL95 = "numeric",
-        #   FM = "numeric",
-        #   SPR = "vector",
-        #   BinMin = "numeric",
-        #   BinMax = "numeric",
-        #   BinWidth = "numeric"  
-        # ), validity=LBSPR:::check_pars)
 
         LB_pars <- new("LB_pars")
 
@@ -81,21 +57,10 @@ run_LBSPR <- function(modpath, lh, itervec=NULL, species=NULL, rewrite=TRUE, sim
 
         LB_pars@SL50 <- inits$SL50 
         LB_pars@SL95 <- inits$SL95
-        # LB_pars@SPR <- 0.4
-        # LB_pars@FM <- sim$F_t[length(sim$F_t)]/sim$M
         LB_pars@BinWidth <- inits$binwidth
 
         LB_pars@Steepness <- inits$h
         LB_pars@R0 <- inits$R0
-
-
-        # setClass("LB_lengths", representation(
-        #   LMids = "vector",
-        #   LData = "matrix",
-        #   Years = "vector",
-        #   NYears = "numeric",
-        #   Elog = "numeric"
-        # ))
 
 
         LB_lengths <- new("LB_lengths")
@@ -108,26 +73,22 @@ run_LBSPR <- function(modpath, lh, itervec=NULL, species=NULL, rewrite=TRUE, sim
         # lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="GTG")), error=function(e) NA)
 
 
-        if(all(is.na(lbspr_res))==FALSE){
           LBSPR_outs <- list()
           LBSPR_outs$pLF <- lbspr_res@pLCatch
           LBSPR_outs$SL50 <- lbspr_res@Ests[,"SL50"]
           LBSPR_outs$SL95 <- lbspr_res@Ests[,"SL95"]
           LBSPR_outs$FM <- lbspr_res@Ests[,"FM"]
           LBSPR_outs$SPR <- lbspr_res@Ests[,"SPR"]
-          saveRDS(LBSPR_outs, file.path(iterpath, "LBSPR_results.rds"))
-        }
-
-        if(all(is.na(lbspr_res))){
-          write("non_convergence", file.path(iterpath, "non_convergence.txt"))
-        }
+          if(write==TRUE) saveRDS(LBSPR_outs, file.path(iterpath, "LBSPR_results.rds"))
 
 
         rm(LB_lengths)
         rm(LB_pars)
-	}
+    }
 
 
-	return(paste0(max(itervec), " iterates run in ", modpath))
+    if(write==TRUE) return(paste0(max(itervec), " iterates run in ", modpath))
+    if(write==FALSE) return(LBSPR_outs)
 
 }
+
