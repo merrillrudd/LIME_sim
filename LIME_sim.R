@@ -16,8 +16,8 @@ library(LBSPR)
 
 
 ### ----- directories and functions -----------###
-main_dir <- "C:\\Git_Projects\\LIME_sim"
-# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+# main_dir <- "C:\\Git_Projects\\LIME_sim"
+main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 if(grepl("C:", main_dir)) ncores <- 2
 if(grepl("F:", main_dir)) ncores <- 8
@@ -55,9 +55,9 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 	ignore <- sapply(1:length(equil_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(equil_dir_vec[m], x), showWarnings=FALSE)))	
 
 	## setup scenario life history list
-	## 2-parameter model for selectivity and maturity
-	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=2, mat_param=2)
-	# lh_fig(lh_list, save=FALSE)
+	## 1-parameter model for selectivity and maturity
+	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=1, mat_param=1)
+	lh_fig(lh_list, save=TRUE)
 
 	### ----- generate data -----------###
 	### data rich cases only
@@ -88,7 +88,7 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 	lbspr_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), write=TRUE, fix_param=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), write=TRUE, fix_param=FALSE)
 	end_run <- Sys.time() - start_run
 
 	### ----- run LBSPR -----------###	
@@ -156,7 +156,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
 	end_run <- Sys.time() - start_run
 
 
@@ -226,7 +226,7 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 # 	lbspr_combos <- base_modcombos[which(grepl("LBSPR", base_modcombos[,"Data_avail"])),]	
 
 # 	start_run <- Sys.time()
-# 	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], Sel0=1, LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
+# 	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaF","SigmaR","SigmaC","SigmaI"), val_adjust=c(0.2,0.7,0.2,0.2), write=TRUE, fix_param=FALSE)
 # 	end_run <- Sys.time() - start_run
 
 # 	### ----- run LBSPR -----------###	
@@ -313,7 +313,7 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1, Sel0=1)
+	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
 	end_run <- Sys.time() - start_run
 
 ############################################################
@@ -376,7 +376,7 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=c(sens_base_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1, Sel0=1)
+	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=c(sens_base_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
 	end_run <- Sys.time() - start_run
 
 
@@ -424,11 +424,11 @@ dome_equil_modcombos$C_opt <- rep(0, nrow(dome_equil_modcombos))
 
 	lh_dome_low <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, Mat0=Mat0, Sel0=Sel0, theta=theta)
+		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 	lh_dome_high <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, Mat0=Mat0, Sel0=Sel0, theta=theta)
+		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 
 
@@ -445,7 +445,7 @@ dome_equil_modcombos$C_opt <- rep(0, nrow(dome_equil_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(dome_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=dome_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(dome_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(dome_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=dome_equil_modcombos[loop,"C_opt"], param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), LFdist=1, Sel0=1)
+	foreach(loop=1:length(dome_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=dome_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(dome_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(dome_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=dome_equil_modcombos[loop,"C_opt"], param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), LFdist=1)
 	end_run <- Sys.time() - start_run
 
 ############################################################
@@ -492,11 +492,11 @@ dome_base_modcombos$C_opt <- rep(0, nrow(dome_base_modcombos))
 
 	lh_dome_low <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, Mat0=Mat0, Sel0=Sel0, theta=theta)
+		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 	lh_dome_high <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, Mat0=Mat0, Sel0=Sel0, theta=theta)
+		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 
 
@@ -513,7 +513,7 @@ dome_base_modcombos$C_opt <- rep(0, nrow(dome_base_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(dome_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=dome_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(dome_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(dome_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, fix_f=0, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=dome_base_modcombos[loop,"C_opt"], param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), LFdist=1, Sel0=1)
+	foreach(loop=1:length(dome_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=dome_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(dome_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(dome_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, REML=FALSE, f_true=FALSE, C_opt=dome_base_modcombos[loop,"C_opt"], param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.7,0.2,0.2,0.2), LFdist=1)
 	end_run <- Sys.time() - start_run
 
 
