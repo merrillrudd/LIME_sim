@@ -1,4 +1,4 @@
-lh_fig <- function(lh, save){
+lh_fig <- function(lh, save=TRUE){
 
 if(save==TRUE) png(file.path(fig_dir, "Life_history_comparison.png"), height=5, width=10, res=200, units="in")
 	if(length(lh)==4) par(mfrow=c(2,2), mar=c(0,0,0,0), omi=c(1,1,1,1))
@@ -21,9 +21,9 @@ if(save==TRUE) png(file.path(fig_dir, "Life_history_comparison.png"), height=5, 
 			if(ll==4) text(x=7, y=0.1, "Type IV: Short-lived, medium size", font=2, cex=1.3)
 		}
 		if(length(lh)==3){
-			if(names(lh[ll])=="Medium") print.letter("Snapper", xy=c(0.75,0.88), font=2, cex=1.3)
-			if(names(lh[ll])=="Short") print.letter("Rabbitfish", xy=c(0.75,0.88), font=2, cex=1.3)
-			if(names(lh[ll])=="Long") print.letter("Hake", xy=c(0.75,0.88), font=2, cex=1.3)
+			if(names(lh[ll])=="Medium") print.letter("Medium", xy=c(0.75,0.88), font=2, cex=1.3)
+			if(names(lh[ll])=="Short") print.letter("Short", xy=c(0.75,0.88), font=2, cex=1.3)
+			if(names(lh[ll])=="Long") print.letter("Longer", xy=c(0.75,0.88), font=2, cex=1.3)
 		}
 
 
