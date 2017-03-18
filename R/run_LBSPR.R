@@ -69,8 +69,8 @@ run_LBSPR <- function(modpath, lh, input_data=NULL, itervec=NULL, species=NULL, 
         LB_lengths@Years <- 1:Nyears_comp
         LB_lengths@NYears <- Nyears_comp
         
-        lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="absel")), error=function(e) NA)
-        # lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="GTG")), error=function(e) NA)
+        # lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="absel")), error=function(e) NA)
+        lbspr_res <- tryCatch(LBSPRfit(LB_pars=LB_pars, LB_lengths=LB_lengths, yrs=NA, Control=list(modtype="GTG")), error=function(e) NA)
 
 
         if(isS4(lbspr_res)){
