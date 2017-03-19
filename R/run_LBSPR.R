@@ -43,7 +43,8 @@ run_LBSPR <- function(modpath, lh, input_data=NULL, itervec=NULL, species=NULL, 
         if(simulation==FALSE) species <- species
         LB_pars@Species <- species
 
-        LB_pars@MK <- inits$M/inits$vbk         
+        LB_pars@MK <- inits$M/inits$vbk   
+        LB_pars@M <- inits$M      
 
         LB_pars@Linf <- inits$linf
 
