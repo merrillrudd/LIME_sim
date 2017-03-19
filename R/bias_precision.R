@@ -63,9 +63,9 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 				rep <- readRDS(file.path(dirs[m], itervec[i], "LBSPR_results.rds"))
 				
 				if(param=="SPR"){
-					dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])
-					esterr[i,m] <- log(rep$SPR[length(rep$SPR)]) - log(true$SPR_t[length(true$SPR_t)])
-					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_t)]
+					dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_alt[length(true$SPR_alt)])
+					esterr[i,m] <- log(rep$SPR[length(rep$SPR)]) - log(true$SPR_alt[length(true$SPR_alt)])
+					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_alt[length(true$SPR_alt)])/true$SPR_alt[length(true$SPR_alt)]
 				}
 				if(param=="S50"){
 					dev[i,m] <- rep$SL50[length(rep$SL50)] - true$SL50
