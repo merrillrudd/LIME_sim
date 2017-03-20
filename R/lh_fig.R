@@ -15,7 +15,7 @@ lh_fig <- function(lh){
 
 		par(new=TRUE)
 		ylim <- c(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$L_a))))
-		xlim <- c(min(ages), max(ages))
+		xlim <- c(min(lh[[ll]]$ages), max(lh[[ll]]$ages))
 		plot(lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=ylim, xlim=xlim, xlab="", ylab="", xaxt="n", yaxt="n")
 		if(ll==length(lh)) axis(4, at=pretty(ylim), las=2, cex.axis=2, col="blue", col.axis="blue")
 		if(ll==1) axis(1, at=pretty(xlim)[-length(pretty(xlim))], cex.axis=2)
