@@ -17,11 +17,11 @@ lh_fig <- function(lh){
 		ylim <- c(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$L_a))))
 		xlim <- c(1, lh[[ll]]$AgeMax + 1)
 		plot(lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=ylim, xlim=xlim, xlab="", ylab="", xaxt="n", yaxt="n")
-		if(ll==length(lh)) axis(4, at=pretty(ylim), las=2, cex.axis=1.2, col="blue", col.axis="blue")
-		if(ll==1) axis(1, at=pretty(xlim), labels=pretty(xlim)-1, cex.axis=1.2)
-		if(ll>1) axis(1, at=pretty(xlim)[-1], labels=(pretty(xlim)-1)[-1])
+		if(ll==length(lh)) axis(4, at=pretty(ylim), las=2, cex.axis=2, col="blue", col.axis="blue")
+		if(ll==1) axis(1, at=pretty(xlim), labels=pretty(xlim)-1, cex.axis=2)
+		if(ll>1) axis(1, at=pretty(xlim)[-1], labels=(pretty(xlim)-1)[-1], cex.axis=2)
 	
-		if(ll==length(lh)) legend("bottomright", legend=c("Selectivity", "Maturity", "Length"), col=c("black", "gray", "blue"), lty=c(1,3,1), lwd=4, cex=1.2)
+		if(ll==length(lh)) legend("bottomright", legend=c("Selectivity", "Maturity", "Length"), col=c("black", "gray", "blue"), lty=c(1,3,1), lwd=4, cex=2)
 	}
 	mtext(side=2, "Proportion vulnerable/mature", cex=1.5, line=3, outer=TRUE)
 	mtext(side=4, "Length (cm)", cex=1.5, line=3, outer=TRUE, col="blue")
