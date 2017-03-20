@@ -5,8 +5,10 @@ lh_fig <- function(lh){
 	if(length(lh)==5) par(mfrow=c(3,2), mar=c(0,0,0,0), omi=c(1,1,1,1))
 
 	for(ll in 1:length(lh)){
-		plot(lh[[ll]]$Mat_a, type="l", lwd=4, ylim=c(0,1), xaxs="i", yaxs="i", xlim=c(1, lh[[ll]]$AgeMax + 1), xpd=NA, xlab="", ylab="", xaxt="n", yaxt="n", xpd=NA)
-		lines(lh[[ll]]$S_a, lty=3, lwd=4, col="gray", xpd=NA)
+		xlim <- c(min(lh[[ll]]$ages), max(lh[[ll]]$ages))
+
+		plot(x=lh[[ll]]$ages, y=lh[[ll]]$Mat_a, type="l", lwd=4, ylim=c(0,1), xaxs="i", yaxs="i", xlim=xlim, xpd=NA, xlab="", ylab="", xaxt="n", yaxt="n", xpd=NA)
+		lines(x=lh[[ll]]$ages, y=lh[[ll]]$S_a, lty=3, lwd=4, col="gray", xpd=NA)
 		if(ll==1) axis(2, at=seq(0,1,by=0.2), cex.axis=2, las=2)
 
 		mtext(side=3, paste0("(", letters[ll],")"), font=2, cex=1.3, line=4)
@@ -15,8 +17,7 @@ lh_fig <- function(lh){
 
 		par(new=TRUE)
 		ylim <- c(0,max(unlist(sapply(1:length(lh), function(xx) lh[[xx]]$L_a))))
-		xlim <- c(min(lh[[ll]]$ages), max(lh[[ll]]$ages))
-		plot(lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=ylim, xlim=xlim, xlab="", ylab="", xaxt="n", yaxt="n")
+		plot(x=lh[[ll]]$ages, y=lh[[ll]]$L_a, lwd=4, type="l", col="blue", xpd=NA, xaxs="i", yaxs="i", ylim=ylim, xlim=xlim, xlab="", ylab="", xaxt="n", yaxt="n")
 		if(ll==length(lh)) axis(4, at=pretty(ylim), las=2, cex.axis=2, col="blue", col.axis="blue")
 		if(ll==1) axis(1, at=pretty(xlim)[-length(pretty(xlim))], cex.axis=2)
 	
