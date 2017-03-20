@@ -12,7 +12,9 @@ lh_fig <- function(lh){
 		if(ll==1) axis(2, at=seq(0,1,by=0.2), cex.axis=2, las=2)
 
 		mtext(side=3, paste0("(", letters[ll],")"), font=2, cex=1.3, line=4)
-		mtext(side=3, names(lh)[ll], font=3, cex=1.4, line=1.5)
+		name <- names(lh)[ll]
+		if(name=="Long") name <- "Longer"
+		mtext(side=3, name, font=3, cex=1.4, line=1.5)
 
 
 		par(new=TRUE)
