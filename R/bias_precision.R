@@ -13,7 +13,7 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 
 			true <- readRDS(file.path(dirs[m], itervec[i], "True.rds"))
 
-			if(grepl("LBSPR", dirs[m])==FALSE){
+			if(grepl("/LBSPR", dirs[m])==FALSE){
 				rep <- readRDS(file.path(dirs[m], itervec[i], "Report.rds"))
 				sdrep <- readRDS(file.path(dirs[m], itervec[i], "Sdreport.rds"))
 
@@ -55,7 +55,7 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 					relerr[i,m] <- (rep$S50 - true$SL50)/true$SL50
 				}
 			}
-			if(grepl("LBSPR", dirs[m])){
+			if(grepl("/LBSPR", dirs[m])){
 				if(file.exists(file.path(dirs[m], itervec[i], "non_convergence.txt"))){
 					converge[i,m] <- 0
 					next
