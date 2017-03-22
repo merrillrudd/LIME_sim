@@ -65,7 +65,7 @@ bias_precision <- function(dirs, itervec, param="SPR"){
 				if(param=="SPR"){
 					dev[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])
 					esterr[i,m] <- log(rep$SPR[length(rep$SPR)]) - log(true$SPR_t[length(true$SPR_t)])
-					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_alt)]
+					relerr[i,m] <- (rep$SPR[length(rep$SPR)] - true$SPR_t[length(true$SPR_t)])/true$SPR_t[length(true$SPR_t)]
 				}
 				if(param=="S50"){
 					dev[i,m] <- rep$SL50[length(rep$SL50)] - true$SL50
