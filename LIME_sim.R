@@ -36,8 +36,8 @@ dir.create(fig_dir, showWarnings=FALSE)
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- "Constant"
 Rdyn_vec <- "Constant"
-data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
-SampleSize_vec <- c(1000, 500, 200, 50, 20)
+data_vec <- c("Index_Catch_LC20", "LC10", "LBSPR10") #c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- c(1000)#, 500, 200, 50, 20)
 itervec <- 1:100
 
 equil_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
@@ -56,7 +56,7 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 
 	## setup scenario life history list
 	## 1-parameter model for selectivity and maturity
-	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=1, mat_param=1)
+	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=1, mat_param=1, nseasons=1)
 	lh_fig(lh_list, save=TRUE)
 
 	### ----- generate data -----------###
