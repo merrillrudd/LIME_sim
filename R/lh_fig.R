@@ -23,7 +23,7 @@ lh_fig <- function(lh){
 		if(ll==length(lh)) axis(4, at=pretty(ylim), las=2, cex.axis=2, col="blue", col.axis="blue")
 		axis(1, at=pretty(xlim)[-length(pretty(xlim))], cex.axis=2)
 	
-		if(ll==length(lh)) legend("bottomright", legend=c("Selectivity", "Maturity", "Length"), col=c("black", "gray", "blue"), lty=c(1,3,1), lwd=4, cex=2)
+		if(ll==length(lh)) legend("bottomright", legend=c("Maturity", "Selectivity", "Length"), col=c("black", "gray", "blue"), lty=c(1,3,1), lwd=4, cex=2)
 	}
 	mtext(side=2, "Proportion vulnerable/mature", cex=1.5, line=4, outer=TRUE)
 	mtext(side=4, "Length (cm)", cex=1.5, line=4, outer=TRUE, col="blue")
