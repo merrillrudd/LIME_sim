@@ -3,7 +3,7 @@ sim_LBSPR <- function(dir, itervec, lh, Nyears, F=0.1, modtype="absel"){
 require(LBSPR)
 for(iter in 1:length(itervec)){
 	set.seed(iter)
-	F <- runif(1,0,1)
+	F <- runif(1, 0.05,0.5)
   	LB_pars <- new("LB_pars", verbose=FALSE)
 	  LB_pars@MK <- lh$M/lh$vbk 
 	  LB_pars@Linf <- lh$linf
@@ -24,7 +24,8 @@ for(iter in 1:length(itervec)){
 
 	  true <- lh
 	  true$DataScenario <- "LBSPR_test"
-	  true$LF <- t(sim@pLCatch)
+	  LF <- rmultinom(1, 1000, sim@pLCatch)
+	  true$LF <- as.matrix(t(LF))
 	  	colnames(true$LF) <- sim@LMids
 	  	rownames(true$LF) <- Nyears
 	  true$SPR_t <- rep(sim@SPR, Nyears)
