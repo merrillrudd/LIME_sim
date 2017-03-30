@@ -219,7 +219,7 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 ### ----- models to run ----------- ###
 lh_vec <- c("Short", "Medium", "Long")
 data_vec <- c("LC1", "LBSPR1") #"Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
-itervec <- 1:50
+itervec <- 1:100
 
 LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec), stringsAsFactors=FALSE)
 
@@ -291,7 +291,6 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 
 	## setup scenario life history list
 	lh_list <- adj_variation(SigmaR=0.737, SigmaF=0.2, SigmaC=0.2, SigmaI=0.2, CVlen=0.1, rho=0.426, selex_param=1, mat_param=1,  nseasons=1)
-	lh_fig(lh=lh_list, save=TRUE)
 
 	### ----- generate data -----------###
 	### data rich cases only
