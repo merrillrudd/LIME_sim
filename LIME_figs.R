@@ -139,86 +139,112 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 	## setup equilibrium dirs
 	equil_dir_vec <- model_paths(res_dir=equil_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
 
-# all_equil_dirs <- c(equil_dir_vec, equil15_dir_vec, equil_12seasons_dir_vec)
+	equil_12seasons_dir <- file.path(main_dir, "equil_12seasons")
+	# unlink(equil_12seasons_dir, TRUE)
+	dir.create(equil_12seasons_dir, showWarnings=FALSE)	
 
-bp_check <- bias_precision(dirs=equil_dir_vec, itervec=itervec, param="SPR")
+	## setup equilibrium dirs
+	equil_12seasons_dir_vec <- model_paths(res_dir=equil_12seasons_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
 
+lh_vec <- c("Short", "Medium", "Long")
+data_vec <- c("LC1", "LBSPR1") #"Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+itervec <- 1:100
 
-icol <- rev(brewer.pal(3,"Purples"))
-ccol <- rev(brewer.pal(3, "Oranges"))
-lcol <- rev(brewer.pal(3, "Blues"))
-rcol <- rev(brewer.pal(3, "Greens"))
-col_vec <- c(gray(0.3), icol[1:2], ccol[1:2], lcol[1:2], rcol[1:2])
+LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec), stringsAsFactors=FALSE)
 
-## choose sample size
-par(mfrow=c(1,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
-i2 <- which(grepl("Short", equil_dir_vec) & grepl("SampleSize_200", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Short-lived", line=1, cex=3)
+	equil_LBSPR_dir <- file.path(main_dir, "equil_LBSPR")
+	# unlink(equil_LBSPR_dir, TRUE)
+	dir.create(equil_LBSPR_dir, showWarnings=FALSE)	
 
-i2 <- which(grepl("Medium", equil_dir_vec) & grepl("SampleSize_200", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Medium-lived", line=1, cex=3)
-
-i2 <- which(grepl("Long", equil_dir_vec) & grepl("SampleSize_200", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Longer-lived", line=1, cex=3)
-
-## compare sample size
-col_vec <- rev(brewer.pal(5, "Greens"))
-## choose sample size
-par(mfrow=c(1,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
-i2 <- which(grepl("Short", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Short-lived", line=1, cex=3)
-
-i2 <- which(grepl("Medium", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Medium-lived", line=1, cex=3)
-
-i2 <- which(grepl("Long", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
-equil_dir_vec[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,3))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Longer-lived", line=1, cex=3)
+	## setup equilibrium dirs
+	equil_LBSPR_dir_vec <- model_paths(res_dir=equil_LBSPR_dir, modcombos=LBSPR_modcombos)
 
 
 
+# all_equil_dirs <- c(equil_dir_vec, equil_12seasons_dir_vec, equil_LBSPR_dir_vec)
 
+# bp_check <- bias_precision(dirs=all_equil_dirs, itervec=itervec, param="SPR")
+
+
+# icol <- rev(brewer.pal(3,"Purples"))
+# ccol <- rev(brewer.pal(3, "Oranges"))
+# lcol <- rev(brewer.pal(3, "Blues"))
+# rcol <- rev(brewer.pal(3, "Greens"))
+# col_vec <- c(gray(0.3), icol[1:2], ccol[1:2], lcol[1:2], rcol[1:2])
+
+# ## choose sample size
+# par(mfrow=c(1,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+# i2 <- which(grepl("Short", all_equil_dirs) & grepl("SampleSize_200", all_equil_dirs))
+# all_equil_dirs[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Short-lived", line=1, cex=3)
+
+# i2 <- which(grepl("Medium", all_equil_dirs) & grepl("SampleSize_200", all_equil_dirs))
+# all_equil_dirs[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Medium-lived", line=1, cex=3)
+
+# i2 <- which(grepl("Long", all_equil_dirs) & grepl("SampleSize_200", all_equil_dirs))
+# all_equil_dirs[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Longer-lived", line=1, cex=3)
+
+# ## compare sample size
+# col_vec <- rev(brewer.pal(5, "Greens"))
+# ## choose sample size
+# par(mfrow=c(1,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+# i2 <- which(grepl("Short", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
+# equil_dir_vec[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,1))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Short-lived", line=1, cex=3)
+
+# i2 <- which(grepl("Medium", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
+# equil_dir_vec[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Medium-lived", line=1, cex=3)
+
+# i2 <- which(grepl("Long", equil_dir_vec) & grepl("/LBSPR1/", equil_dir_vec))
+# equil_dir_vec[i2]
+# plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,3))
+# b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# p1 <- round(bp_check$precision[i2],3)
+# abline(h=0, lty=2)
+# beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
+# mtext(side=3, "Longer-lived", line=1, cex=3)
+
+
+
+
+############################################################
+#### base - with variation
+############################################################
+### ----- models to run ----------- ###
 ############################################################
 #### base - with variation
 ############################################################
@@ -236,92 +262,23 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 
 ### ----- base runs ----------- ###
 	base_dir <- file.path(main_dir, "base")
-	## setup base dirs
+	# unlink(base_dir, TRUE)
+	dir.create(base_dir, showWarnings=FALSE)	
+
+	## setup equil dirs
 	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
 
-all_dirs <- c(equil_dir_vec, base_dir_vec)
-bp_check <- bias_precision(dirs=all_dirs, itervec=itervec, param="SPR")
 
 
-icol <- rev(brewer.pal(3,"Purples"))
-ccol <- rev(brewer.pal(3, "Oranges"))
-lcol <- rev(brewer.pal(3, "Blues"))
-rcol <- rev(brewer.pal(3, "Greens"))
-col_vec <- c(gray(0.3), icol[1:2], ccol[1:2], lcol[1:2], rcol[1:2])
-
-## choose sample size
-par(mfrow=c(2,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
-i2 <- which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("equil", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Short-lived", line=1, cex=3)
-
-i2 <- which(grepl("Medium", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("equil", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Medium-lived", line=1, cex=3)
-
-i2 <- which(grepl("Long", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("equil", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Longer-lived", line=1, cex=3)
-
-i2 <- which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("base", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-mtext(side=3, "Short-lived", line=1, cex=3)
-
-i2 <- which(grepl("Medium", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("base", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-# mtext(side=3, "Medium-lived", line=1, cex=3)
-
-i2 <- which(grepl("Long", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("base", all_dirs))
-all_dirs[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,9.5),ylim=c(-1.5,1))
-b1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
-p1 <- round(bp_check$precision[i2],3)
-abline(h=0, lty=2)
-beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
-axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=2.5)
-# mtext(side=3, "Longer-lived", line=1, cex=3)
 
 
-# ### ----- base runs - sigR lower----------- ###
-# 	base_lowsigR_dir <- file.path(main_dir, "base_lowsigR")
-# 	## setup base with low variation dirs
-# 	base_lowsigR_dir_vec <- model_paths(res_dir=base_lowsigR_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
+
 
 ############################################################
 #### SUMMARY
 ############################################################
 
-all_dirs <- c(equil_dir_vec, base_dir_vec) ## base_lowsigR_dir
+all_dirs <- c(equil_dir_vec, base_dir_vec, equil_12seasons_dir_vec, equil_LBSPR_dir_vec)
 
 
 icol <- rev(brewer.pal(3,"Purples"))
@@ -337,8 +294,8 @@ col_vec <- c(gray(0.3), icol[1:2], ccol[1:2], lcol[1:2])#, rcol[1:2])
 	}
 choose <- all_dirs[which(grepl("Medium", all_dirs) & grepl("SampleSize_200/", all_dirs) & grepl("/base/", all_dirs) & grepl("LBSPR", all_dirs)==FALSE & grepl("LC5/", all_dirs)==FALSE & grepl("LC2/", all_dirs)==FALSE & grepl("Ramp", all_dirs)) ]
 names <- c("Rich", "Index+LC10","Index+LC1","Catch+LC10","Catch+LC1","LC10","LC1")
-set.seed(222)
-iter <- sample(1:100,1)
+# set.seed(143)
+iter <- 1
 png(file.path(fig_dir, "Iter_example.png"), width=25, height=16, res=200, units="in")
 par(mfrow=c(3,7), mar=c(0,0,0,0), omi=c(1,1,2,1))
 for(i in 1:length(choose)){
