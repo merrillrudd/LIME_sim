@@ -28,6 +28,11 @@ ignore <- sapply(1:length(funs), function(x) source(file.path(main_dir,"R", funs
 fig_dir <- file.path(main_dir, "figs")
 dir.create(fig_dir, showWarnings=FALSE)
 
+
+## look at possible stocks
+load(file=file.path(main_dir, "FAODataR"))
+full_data <- data.frame(Area,Country,ScientificName,Species,Catch,Measure,stringsAsFactors=FALSE)	#all measures are Quantity (tonnes)
+
 ############################################################
 #### equilibrium - instantaneous LF
 ############################################################
@@ -218,7 +223,7 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 ### ----- equilibrium test ----------- ###
 ### ----- models to run ----------- ###
 lh_vec <- c("Short", "Medium", "Long")
-data_vec <- c("LC1", "LBSPR1") #"Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+data_vec <- c("LC10", "LBSPR10") #"Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
 itervec <- 1:100
 
 LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec), stringsAsFactors=FALSE)
@@ -237,7 +242,7 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 	# lh_fig(lh_list, save=TRUE)
 
 	### ----- use parallel cores -----------###
-	registerDoParallel(cores=ncores)	
+	registerDoParallel(cores=2)	
 
 	start_gen <- Sys.time()
 	foreach(loop=1:length(equil_LBSPR_dir_vec), .packages=c('TMB','LIME')) %dopar% sim_LBSPR(dir=equil_LBSPR_dir_vec[loop], lh=lh_list[[as.character(strsplit(LBSPR_modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, Nyears=1)
@@ -343,7 +348,7 @@ lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- "Constant"
 Rdyn_vec <- "Constant" 
 data_vec <- c("LC10")
-SampleSize_vec <- c(1000, 500, 200, 50, 20)
+SampleSize_vec <- 200
 itervec <- 1:100
 input_vec <- c("M", "linf", "vbk", "ML50", "CVlen")
 val_vec <- c("high", "low")
@@ -382,8 +387,8 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 
 	### ----- generate data -----------###
 	## copy data files from similar previous directory
-	init_dir <- equil_dir_vec[grepl("/LC10/",equil_dir_vec)]
-	init_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail=="LC10"),]
+	init_dir <- equil_dir_vec[which(equil_modcombos$Data_avail %in% data_vec & equil_modcombos$SampleSize %in% paste0("SampleSize_", SampleSize_vec))]
+	init_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail %in% data_vec & equil_modcombos$SampleSize %in% paste0("SampleSize_", SampleSize_vec)),]
 	alt_dir <- sens_equil_dir_vec
 	alt_modcombos <- sens_equil_modcombos
 
@@ -406,7 +411,7 @@ lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- c("Ramp", "Increasing")#, "Decreasing")
 Rdyn_vec <- "AR" 
 data_vec <- c("LC10")
-SampleSize_vec <- c(1000, 500, 200, 50, 20)
+SampleSize_vec <- 200
 itervec <- 1:100
 input_vec <- c("M", "linf", "vbk", "ML50", "CVlen")
 val_vec <- c("high", "low")
@@ -445,8 +450,8 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 	### ----- generate data -----------###
 	## copy data files from similar previous directory
-	init_dir <- base_dir_vec[grepl("/LC10/",base_dir_vec) & grepl("SampleSize_20",base_dir_vec)==FALSE]
-	init_modcombos <- base_modcombos[which(base_modcombos$Data_avail=="LC10" & base_modcombos$SampleSize!="SampleSize_20"),]
+	init_dir <- base_dir_vec[which(base_modcombos$Data_avail %in% data_vec & base_modcombos$SampleSize %in% paste0("SampleSize_", SampleSize_vec))]
+	init_modcombos <- base_modcombos[which(base_modcombos$Data_avail %in% data_vec & base_modcombos$SampleSize %in% paste0("SampleSize_", SampleSize_vec)),]
 	alt_dir <- sens_base_dir_vec
 	alt_modcombos <- sens_base_modcombos
 
@@ -470,7 +475,7 @@ lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- "Constant"
 Rdyn_vec <- "Constant" 
 data_vec <- c("LC10")
-SampleSize_vec <- c(1000, 500, 200, 50, 20)
+SampleSize_vec <- 200
 itervec <- 1:100
 val_vec <- c("high", "low")
 
@@ -492,11 +497,11 @@ dome_equil_modcombos$C_opt <- rep(0, nrow(dome_equil_modcombos))
 
 	## matrix of sensitivity values
 	dome_vals <- NULL
-	dome_vals[["Short"]] <- c(20, 40)
+	dome_vals[["Short"]] <- c(24, 50)
 	names(dome_vals[["Short"]]) <- val_vec
-	dome_vals[["Medium"]] <- c(2, 5)
+	dome_vals[["Medium"]] <- c(37, 77)
 	names(dome_vals[["Medium"]]) <- val_vec
-	dome_vals[["Long"]] <- c(15, 30)
+	dome_vals[["Long"]] <- c(62, 140)
 	names(dome_vals[["Long"]]) <- val_vec
 
 	dome_low_dirs <- dome_equil_dir_vec[grepl("low", dome_equil_dir_vec)]
@@ -506,13 +511,12 @@ dome_equil_modcombos$C_opt <- rep(0, nrow(dome_equil_modcombos))
 
 	lh_dome_low <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
+		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=SL50, M50=ML50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"], CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=0, rho=rho, theta=theta, AgeMax=AgeMax))
 	}
 	lh_dome_high <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
+		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=SL50, M50=ML50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"], CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=0, rho=rho, theta=theta, AgeMax=AgeMax))
 	}
-
 
 	### ----- use parallel cores -----------###
 	registerDoParallel(cores=ncores)	
@@ -535,10 +539,10 @@ dome_equil_modcombos$C_opt <- rep(0, nrow(dome_equil_modcombos))
 ############################################################
 ### ----- models to run ----------- ###
 lh_vec <- c("Short", "Medium", "Long")
-Fdyn_vec <- c("Ramp", "Decreasing", "Increasing")
+Fdyn_vec <- c("Ramp", "Increasing")
 Rdyn_vec <- "AR" 
 data_vec <- c("LC10")
-SampleSize_vec <- c(1000, 500, 200, 50, 20)
+SampleSize_vec <- 200
 itervec <- 1:100
 val_vec <- c("high", "low")
 
@@ -560,11 +564,11 @@ dome_base_modcombos$C_opt <- rep(0, nrow(dome_base_modcombos))
 
 	## matrix of sensitivity values
 	dome_vals <- NULL
-	dome_vals[["Short"]] <- c(20, 40)
+	dome_vals[["Short"]] <- c(24, 50)
 	names(dome_vals[["Short"]]) <- val_vec
-	dome_vals[["Medium"]] <- c(2, 5)
+	dome_vals[["Medium"]] <- c(37, 77)
 	names(dome_vals[["Medium"]]) <- val_vec
-	dome_vals[["Long"]] <- c(15, 30)
+	dome_vals[["Long"]] <- c(62, 140)
 	names(dome_vals[["Long"]]) <- val_vec
 
 	dome_low_dirs <- dome_base_dir_vec[grepl("low", dome_base_dir_vec)]
@@ -574,13 +578,15 @@ dome_base_modcombos$C_opt <- rep(0, nrow(dome_base_modcombos))
 
 	lh_dome_low <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
+		lh_dome_low[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=SL50, M50=ML50, M=M, selex_input="length", maturity_input="length", selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["low"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 	lh_dome_high <- NULL
 	for(ll in 1:length(lh_list)){
-		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=S50, M50=M50, M=M, selex_input=selex_input, maturity_input=maturity_input, selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
+		lh_dome_high[[lh_vec[ll]]] <- with(lh_list[[lh_vec[ll]]], create_lh_list(vbk=vbk, linf=linf, lwa=lwa, lwb=lwb, S50=SL50, M50=ML50, M=M, selex_input="length", maturity_input="length", selex_type="dome", dome_sd=dome_vals[[lh_vec[ll]]]["high"]), CVlen=CVlen, SigmaC=SigmaC, SigmaI=SigmaI, SigmaR=SigmaR, SigmaF=SigmaF, R0=R0, h=h, qcoef=qcoef, F1=F1, start_ages=start_ages, rho=rho, theta=theta)
 	}
 
+	plot(lh_dome_low[[3]]$S_l, ylim=c(0,1))
+	lh_dome_low[[3]]$S_l
 
 	### ----- use parallel cores -----------###
 	registerDoParallel(cores=ncores)	
