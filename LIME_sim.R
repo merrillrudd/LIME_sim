@@ -267,6 +267,70 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 # bp_check <- bias_precision(dirs=equil_LBSPR_dir_vec, itervec=itervec, param="SPR")
 
 
+### ----- equilibrium test ----------- ###
+### ----- models to run ----------- ###
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- "Constant"
+Rdyn_vec <- "Constant"
+data_vec <- c("LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- c(1000,200,20)
+itervec <- 1:100
+
+equil_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
+	equil_modcombos$C_opt[which(grepl("Catch",equil_modcombos[,"Data_avail"]))] <- 2
+
+	equil_runMonthly_dir <- file.path(main_dir, "equil_runMonthly")
+	# unlink(equil_runMonthly_dir, TRUE)
+	dir.create(equil_runMonthly_dir, showWarnings=FALSE)	
+
+	## setup equilibrium dirs
+	equil_runMonthly_dir_vec <- model_paths(res_dir=equil_runMonthly_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
+	ignore <- sapply(1:length(equil_runMonthly_dir_vec), function(m) sapply(itervec, function(x) dir.create(file.path(equil_runMonthly_dir_vec[m], x), showWarnings=FALSE)))	
+
+	## setup scenario life history list
+	## 1-parameter model for selectivity and maturity
+	lh_list <- adj_variation(SigmaR=0.01, SigmaF=0.01, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=1, mat_param=1, nseasons=12)
+	# lh_fig(lh_list, save=TRUE)
+
+	### ----- generate data -----------###
+	### data rich cases only
+	rich_dir <- equil_runMonthly_dir_vec[grepl("LC10/",equil_runMonthly_dir_vec)]
+	rich_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail=="LC10"),]
+	alt_dir <- equil_runMonthly_dir_vec[grepl("LC10/",equil_runMonthly_dir_vec)==FALSE]
+	alt_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail!="LC10"),]
+
+	### ----- use parallel cores -----------###
+	registerDoParallel(cores=ncores)	
+
+	start_gen <- Sys.time()
+	foreach(loop=1:length(rich_dir), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=rich_dir[loop], data_avail=as.character(rich_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(rich_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(rich_modcombos[loop,"Rdyn"],"_")[[1]][2]),  lh=lh_list[[as.character(strsplit(rich_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=10, comp_sample=as.numeric(strsplit(rich_modcombos[loop,"SampleSize"],"_")[[1]][2]), rewrite=FALSE, init_depl=c(0.05,0.95), pool=FALSE)
+	end_gen <- Sys.time() - start_gen
+
+	# copy data rich cases to data poor
+	# when written using parallel cores, sometimes files not writing properly
+	start_regen <- Sys.time()
+	for(loop in 1:length(rich_dir)){
+		copy_sim(fromdir=rich_dir[loop], fromcombos=rich_modcombos[loop,], todir=alt_dir, itervec=itervec, rewrite=FALSE, res_dir="equil_runMonthly")
+	}
+	end_regen <- Sys.time() - start_regen
+
+	### ----- run LIME -----------###
+	lime_dirs <- equil_runMonthly_dir_vec[which(grepl("LBSPR",equil_runMonthly_dir_vec)==FALSE)]
+	lbspr_dirs <- equil_runMonthly_dir_vec[which(grepl("LBSPR",equil_runMonthly_dir_vec))]
+	lime_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])==FALSE),]
+	lbspr_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])),]	
+
+	start_run <- Sys.time()
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.2,0.2,0.2,0.2),  fix_param=FALSE)
+	end_run <- Sys.time() - start_run
+
+
+	### ----- run LBSPR -----------###	
+
+	start_run <- Sys.time()
+	foreach(loop=1:length(lbspr_dirs), .packages=c('LBSPR','LIME')) %dopar% run_LBSPR(modpath=lbspr_dirs[loop], lh=lh_list[[as.character(strsplit(lbspr_combos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, species=NULL, rewrite=FALSE, simulation=TRUE)
+	end_altrun <- Sys.time() - start_run
 
 
 
@@ -403,6 +467,10 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
 	end_run <- Sys.time() - start_run
 
+	for(loop in 1:length(sens_equil_dir_vec)){
+		run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
+	}
+	
 ############################################################
 #### sensitivities - base
 ############################################################
