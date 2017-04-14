@@ -5,7 +5,7 @@ library(beanplot)
 
 ### ----- directories and functions -----------###
 # main_dir <- "C:\\Git_Projects\\LIME_sim"
-main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 
 funs <- list.files(file.path(main_dir, "R"))
@@ -162,8 +162,36 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 	equil_LBSPR_dir_vec <- model_paths(res_dir=equil_LBSPR_dir, modcombos=LBSPR_modcombos)
 
 
+lh_vec <- c("Short")#, "Medium", "Long")
+Fdyn_vec <- "Constant"
+Rdyn_vec <- "Constant"
+data_vec <- "LC1" #c("LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- 200
+itervec <- 1:100
 
+equil_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
+	equil_modcombos$C_opt[which(grepl("Catch",equil_modcombos[,"Data_avail"]))] <- 2
 
+	equil_runMonthly_dir <- file.path(main_dir, "equil_runMonthly")
+	dir.create(equil_runMonthly_dir, showWarnings=FALSE)	
+
+	## setup equilibrium dirs
+	equil_runMonthly_dir_vec <- model_paths(res_dir=equil_runMonthly_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
+
+bp_check <- bias_precision(dirs=equil_runMonthly_dir_vec, itervec=itervec)
+
+col_vec <- "goldenrod"
+i2 <- 1:length(equil_runMonthly_dir_vec)
+equil_runMonthly_dir_vec[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1.5))
+b1 <- sapply(1:length(i2), function(x) round(median(bp_check$dev[,i2[x]], na.rm=TRUE),3))
+p1 <- sapply(1:length(i2), function(x) round(median(abs(bp_check$dev[,i2[x]]), na.rm=TRUE),3))
+# text(x=1:length(b1), y=0.95*3, b1, cex=2.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=2.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp_check$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+axis(2)
 
 ############################################################
 #### base - with variation
@@ -192,7 +220,24 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	## setup equil dirs
 	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
 
+### ----- models to run ----------- ###
+lh_vec <- c("Short")#, "Medium", "Long")
+Fdyn_vec <- "Ramp"
+Rdyn_vec <- "AR"
+data_vec <- c("LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- 200 #c(1000,200)#,20)
+itervec <- 1:100
 
+base_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
+	base_modcombos$C_opt[which(grepl("Catch",base_modcombos[,"Data_avail"]))] <- 2
+
+	base_runMonthly_dir <- file.path(main_dir, "base_runMonthly")
+	# unlink(base_runMonthly_dir, TRUE)
+	dir.create(base_runMonthly_dir, showWarnings=FALSE)	
+
+	## setup equilibrium dirs
+	base_runMonthly_dir_vec <- model_paths(res_dir=base_runMonthly_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
 
 
 
