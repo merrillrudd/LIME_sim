@@ -165,3 +165,29 @@ base_N_modcombos$C_opt <- rep(0, nrow(base_N_modcombos))
 	for(loop in 1:length(lime_dirs)){
 		run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.737,0.2,0.2,0.2),  fix_param=FALSE)
 	}
+
+N_dirs <- c(equil_N_dir_vec, base_N_dir_vec)
+# bp_N <- bias_precision(N_dirs, itervec=1:100)
+# saveRDS(bp_N, file.path(res_dir, "sample_size_bias_precision.rds"))
+
+bp_N <- readRDS(file.path(res_dir, "sample_size_bias_precision.rds"))
+
+
+## sample size
+data_vec <- paste0("SampleSize_", c(1000,500,100,50,20))
+bmat <- pmat <- matrix(NA, nrow=length(data_vec), ncol=9)
+rownames(bmat) <- rownames(pmat) <- data_vec
+colnames(bmat) <- colnames(pmat) <- rep(c("equil", "two-way", "one-way"),3)
+
+for(i in 1:length(data_vec)){
+	idir <- c(which(grepl("Short", N_dirs) & grepl("/LC1/", N_dirs) & grepl(paste0(data_vec[i],"/"), N_dirs)), which(grepl("Medium", N_dirs) & grepl("/LC1/", N_dirs) & grepl(paste0(data_vec[i],"/"), N_dirs)), which(grepl("Long", N_dirs) & grepl("/LC1/", N_dirs) & grepl(paste0(data_vec[i],"/"), N_dirs)))
+	b <- sapply(1:length(idir), function(x) median((bp_N$relerr[,idir[x]]), na.rm=TRUE))
+	p <- sapply(1:length(idir), function(x) median(abs(bp_N$relerr[,idir[x]]), na.rm=TRUE))
+	bmat[i,] <- b
+	pmat[i,] <- p
+	rm(b)
+	rm(p)
+}
+
+write.csv(rbind(bmat,pmat), file.path(res_dir, "sample_size_biases_precision.csv"))
+

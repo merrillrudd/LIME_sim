@@ -20,7 +20,7 @@ library(LBSPR)
 main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 if(grepl("C:", main_dir)) ncores <- 2
-if(grepl("F:", main_dir)) ncores <- 10
+if(grepl("F:", main_dir)) ncores <- 5
 
 funs <- list.files(file.path(main_dir, "R"))
 ignore <- sapply(1:length(funs), function(x) source(file.path(main_dir,"R", funs[x])))
@@ -32,7 +32,9 @@ res_dir <- file.path(main_dir, "calc_results")
 dir.create(res_dir, showWarnings=FALSE)
 
 
-## base
+############################################################
+#### find base run directories
+############################################################
 ### ----- models to run ----------- ###
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- "Constant"
@@ -97,7 +99,7 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 
 
 	### ----- use parallel cores -----------###
-	registerDoParallel(cores=5)	
+	registerDoParallel(cores=ncores)	
 
 	### ----- generate data -----------###
 	## copy data files from similar previous directory
@@ -114,13 +116,12 @@ sens_equil_modcombos$C_opt <- rep(0, nrow(sens_equil_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
+	foreach(loop=1:length(sens_equil_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_equil_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_equil_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_equil_modcombos[loop,"C_opt"], param_adjust=c(sens_equil_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_equil_modcombos[loop,"LH"],"_")[[1]][2])]][sens_equil_modcombos[loop,"Adjust"],sens_equil_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1, newtonsteps=3)
 	end_run <- Sys.time() - start_run
 
 ############################################################
-#### sensitivities - base
+#### find base directories
 ############################################################
-
 ### ----- models to run ----------- ###
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- c("Ramp", "Increasing")#, "Decreasing")
@@ -141,7 +142,9 @@ base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
 	## setup equil dirs
 	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
 
-### ----- models to run ----------- ###
+############################################################
+#### sensitivities with variation
+############################################################
 lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- c("Ramp", "Increasing")#, "Decreasing")
 Rdyn_vec <- "AR" 
@@ -198,21 +201,17 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 	## run LIME
 	start_run <- Sys.time()
-	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=c(sens_base_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1)
+	foreach(loop=1:length(sens_base_dir_vec), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=sens_base_dir_vec[loop], lh=lh_list[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(sens_base_modcombos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=sens_base_modcombos[loop,"C_opt"], param_adjust=c(sens_base_modcombos[loop,"Param"],"SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(sens_vals[[as.character(strsplit(sens_base_modcombos[loop,"LH"],"_")[[1]][2])]][sens_base_modcombos[loop,"Adjust"],sens_base_modcombos[loop,"Param"]],0.7,0.2,0.2,0.2), LFdist=1, newtonsteps=3)
 	end_run <- Sys.time() - start_run
 
 
 all_sens_dir <- c(sens_equil_dir_vec, sens_base_dir_vec)
 
-# sens_bp <- bias_precision(dirs=all_sens_dir, itervec=itervec)
-# saveRDS(sens_bp, file.path(res_dir, "sens_bias_precision.rds"))
+sens_bp <- bias_precision(dirs=all_sens_dir, itervec=itervec)
+saveRDS(sens_bp, file.path(res_dir, "sens_bias_precision.rds"))
 sens_bp <- readRDS(file.path(res_dir, "sens_bias_precision.rds"))
 
 dirs1 <- c(equil_dir_vec, base_dir_vec)
-
-# bp1 <- bias_precision(dirs1,itervec=1:100)
-# saveRDS(bp1, file.path(res_dir, "equil_var_bias_precision.rds"))
-
 bp1 <- readRDS(file.path(res_dir, "equil_var_bias_precision.rds"))
 
 
@@ -520,6 +519,14 @@ mtext(side=4, "Longer-lived", line=2, cex=3)
 mtext(side=2, outer=TRUE, line=6, "Relative error", cex=3)
 mtext(side=1, outer=TRUE, line=6, "Fixed value", cex=3)
 dev.off()
+
+
+
+
+
+
+
+
 
 
 
