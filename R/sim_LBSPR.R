@@ -1,4 +1,4 @@
-sim_LBSPR <- function(dir, itervec, lh, Nyears, F=0.1, modtype="absel"){
+sim_LBSPR <- function(dir, itervec, lh, Nyears, F=0.1, modtype="absel", sample_size=200){
 
 require(LBSPR)
 for(iter in 1:length(itervec)){
@@ -24,10 +24,10 @@ for(iter in 1:length(itervec)){
 
 	  true <- lh
 	  true$DataScenario <- "LBSPR_test"
-	  LF <- rmultinom(1, 1000, sim@pLCatch)
+	  LF <- rmultinom(Nyears, sample_size, sim@pLCatch)
 	  true$LF <- as.matrix(t(LF))
 	  	colnames(true$LF) <- sim@LMids
-	  	rownames(true$LF) <- Nyears
+	  	rownames(true$LF) <- 1:Nyears
 	  true$SPR_t <- rep(sim@SPR, Nyears)
 	  true$Nyears <- Nyears
 	  true$years <- 1:Nyears
