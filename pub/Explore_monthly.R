@@ -15,8 +15,8 @@ library(LIME)
 library(LBSPR)
 
 ### ----- directories and functions -----------###
-main_dir <- "C:\\Git_Projects\\LIME_sim"
-# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+# main_dir <- "C:\\Git_Projects\\LIME_sim"
+main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 if(grepl("C:", main_dir)) ncores <- 2
 if(grepl("F:", main_dir)) ncores <- 8
@@ -55,7 +55,8 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 
 	### ----- use parallel cores -----------###
 	for(loop in 1:length(equil_LBSPR_dir_vec)){
-		sim_LBSPR(dir=equil_LBSPR_dir_vec[loop], lh=lh_list[[as.character(strsplit(LBSPR_modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, Nyears=as.numeric(strsplit(LBSPR_modcombos[loop,"Data_avail"],"LC")[[1]][2]), sample_size=200)
+		left <- ifelse(grepl("LBSPR", LBSPR_modcombos[loop,"Data_avail"]), "LBSPR", "LC")
+		ignore <- sim_LBSPR(dir=equil_LBSPR_dir_vec[loop], lh=lh_list[[as.character(strsplit(LBSPR_modcombos[loop,"LH"],"_")[[1]][2])]], itervec=itervec, Nyears=as.numeric(strsplit(LBSPR_modcombos[loop,"Data_avail"],left)[[1]][2]), sample_size=200)
 	}
 
 	### ----- run LIME -----------###
@@ -64,8 +65,11 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 	lime_combos <- LBSPR_modcombos[which(grepl("LBSPR", LBSPR_modcombos[,"Data_avail"])==FALSE),]
 	lbspr_combos <- LBSPR_modcombos[which(grepl("LBSPR", LBSPR_modcombos[,"Data_avail"])),]	
 
+		registerDoParallel(cores=ncores)	
+
+
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar%
 	   run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=0, LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.737,0.2,0.2,0.2),  fix_param=FALSE)
 	end_run <- Sys.time() - start_run
 
@@ -79,6 +83,19 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 ############################################################
 ## monthly simulation, annual run
 ############################################################
+
+	### ----- models to run ----------- ###
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- "Constant"
+Rdyn_vec <- "Constant"
+data_vec <- c("LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- 200
+itervec <- 1:100
+
+equil_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
+	equil_modcombos$C_opt[which(grepl("Catch",equil_modcombos[,"Data_avail"]))] <- 2
+
 	equil_MoYr_dir <- file.path(main_dir, "equil_MoYr")
 	# unlink(equil_MoYr_dir, TRUE)
 	dir.create(equil_MoYr_dir, showWarnings=FALSE)	
@@ -100,7 +117,7 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 	alt_modcombos <- equil_modcombos[which(equil_modcombos$Data_avail!=data_vec[1]),]
 
 	### ----- use parallel cores -----------###
-	# registerDoParallel(cores=ncores)	
+	registerDoParallel(cores=ncores)	
 
 	## monthly data collection but pool=TRUE
 	start_gen <- Sys.time()
@@ -142,7 +159,7 @@ LBSPR_modcombos <- expand.grid("Data_avail"=data_vec, "LH"=paste0("LH_",lh_vec),
 ############################################################
 ### ----- equilibrium test ----------- ###
 ### ----- models to run ----------- ###
-lh_vec <- c("Short", "Medium", "Long")
+lh_vec <- c("Short")#, "Medium", "Long")
 Fdyn_vec <- "Constant"
 Rdyn_vec <- "Constant"
 data_vec <- c("LC10", "LC1")#, "LBSPR10", "LBSPR1")
@@ -173,16 +190,119 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 
 	## key difference between other sims --- pool=FALSE (monthly length comp, not pooled annually)
 	start_gen <- Sys.time()
-	foreach(loop=1:length(equil_runMonthly_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=equil_runMonthly_dir_vec[loop], data_avail=as.character(equil_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(equil_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(equil_modcombos[loop,"Rdyn"],"_")[[1]][2]),  lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=as.numeric(strsplit(equil_modcombos[loop,"Data_avail"],"LC")[[1]][2]), comp_sample=as.numeric(strsplit(equil_modcombos[loop,"SampleSize"],"_")[[1]][2]), rewrite=FALSE, init_depl=c(0.05,0.95), pool=FALSE)
+	foreach(loop=1:length(equil_runMonthly_dir_vec), .packages=c('TMB','LIME')) %dopar% generate_data(modpath=equil_runMonthly_dir_vec[loop], data_avail=as.character(equil_modcombos[loop,"Data_avail"]), itervec=itervec, Fdynamics=as.character(strsplit(equil_modcombos[loop,"Fdyn"],"_")[[1]][2]), Rdynamics=as.character(strsplit(equil_modcombos[loop,"Rdyn"],"_")[[1]][2]),  lh=lh_list[[as.character(strsplit(equil_modcombos[loop,"LH"],"_")[[1]][2])]], Nyears=as.numeric(strsplit(equil_modcombos[loop,"Data_avail"],"LC")[[1]][2]), Nyears_comp=as.numeric(strsplit(equil_modcombos[loop,"Data_avail"],"LC")[[1]][2]), comp_sample=as.numeric(strsplit(equil_modcombos[loop,"SampleSize"],"_")[[1]][2]), rewrite=FALSE, init_depl=c(0.05,0.95), pool=FALSE)
 	end_gen <- Sys.time() - start_gen
 
 
 	### ----- run LIME -----------###
 	lime_dirs <- equil_runMonthly_dir_vec[which(grepl("LBSPR",equil_runMonthly_dir_vec)==FALSE)]
-	lbspr_dirs <- equil_runMonthly_dir_vec[which(grepl("LBSPR",equil_runMonthly_dir_vec))]
 	lime_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])==FALSE),]
-	lbspr_combos <- equil_modcombos[which(grepl("LBSPR", equil_modcombos[,"Data_avail"])),]	
 
 	start_run <- Sys.time()
-	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.2,0.2,0.2,0.2),  fix_param=FALSE)
+	foreach(loop=1:length(lime_dirs), .packages=c('TMB','LIME')) %dopar% run_LIME(modpath=lime_dirs[loop], lh=lh_list[[as.character(strsplit(lime_combos[loop,"LH"],"_")[[1]][2])]], input_data=NULL, est_sigma=c("log_sigma_R"), data_avail=as.character(lime_combos[loop,"Data_avail"]), itervec=itervec, rewrite=FALSE, simulation=TRUE, f_true=FALSE, C_opt=lime_combos[loop,"C_opt"], LFdist=1, param_adjust=c("SigmaR","SigmaF","SigmaC","SigmaI"), val_adjust=c(0.737,0.2,0.2,0.2),  fix_param=FALSE)
 	end_run <- Sys.time() - start_run
+
+all_dirs <- c(equil_LBSPR_dir_vec, equil_MoYr_dir_vec, equil_runMonthly_dir_vec)
+
+bp <- bias_precision(all_dirs,itervec=1:100)
+saveRDS(bp, file.path(res_dir, "explore_monthly_bias_precision.rds"))
+
+bp <- readRDS(file.path(res_dir, "explore_monthly_bias_precision.rds"))
+
+### equilibrium scenarios - LBSPR
+dirnames <- sapply(1:length(all_dirs), function(x) strsplit(all_dirs[x], "equil_")[[1]][2])
+inst_dirs <- which(grepl("LBSPR/", dirnames)==FALSE)
+dirnames[inst_dirs] <- sapply(1:length(inst_dirs), function(x) strsplit(dirnames[inst_dirs[x]], "/F_Constant")[[1]][1])
+bmat2 <- pmat2 <- rep(NA, length(dirnames))
+names(bmat2) <- names(pmat2) <- dirnames
+
+for(i in 1:length(dirnames)){
+	b <- sapply(1:length(idir), function(x) median((bp$relerr[,i]), na.rm=TRUE))
+	p <- sapply(1:length(idir), function(x) median(abs(bp$relerr[,i]), na.rm=TRUE))
+	bmat2[i] <- b
+	pmat2[i] <- p
+	rm(b)
+	rm(p)
+}
+
+write.csv(rbind(bmat2, pmat2), file.path(res_dir, "explore_monthly_bias_precision.csv"))
+
+
+
+lcol <- rev(brewer.pal(3, "Blues"))
+rcol <- rev(brewer.pal(3, "Greens"))
+col_vec <- c(lcol[1:2], rcol[1:2])
+
+#### comparing equilibrium to monthly
+png(file.path(fig_dir, "Compare_annual_monthly.png"), res=200, units="in", height=15, width=28)
+par(mfrow=c(2,3), mar=c(0,4,2,2), omi=c(1,1,1,1))
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/equil/", all_dirs)))
+all_dirs[i2]
+b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1))
+abline(h=0, lty=2)
+# axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=3, "Annual data and model", line=1, cex=3)
+
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/equil_12seasons/", all_dirs)))
+all_dirs[i2]
+b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,4))
+abline(h=0, lty=2)
+# axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1,4,by=1), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=3, "Monthly data, annual model", line=1, cex=3)
+
+
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("equil", all_dirs) & grepl("runMonthly", all_dirs)))
+all_dirs[i2]
+b2 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p2 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-2,2.5))
+abline(h=0, lty=2)
+# axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-2,2.5,by=1), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=3, "Monthly data and model", line=1, cex=3)
+mtext(side=4, "Equilibrium", line=2, cex=3)
+
+
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("Ramp", all_dirs) & grepl("/base/", all_dirs)))
+all_dirs[i2]
+b3 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p3 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1))
+abline(h=0, lty=2)
+axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/base_12seasons/", all_dirs)))
+all_dirs[i2]
+b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,4))
+abline(h=0, lty=2)
+axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1,4,by=1), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+
+
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("Ramp", all_dirs) & grepl("runMonthly", all_dirs)))
+all_dirs[i2]
+b4 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
+p4 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-2,2.5))
+abline(h=0, lty=2)
+axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-2,2.5,by=1), las=2,cex.axis=3.5)
+beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=4, "Variability", line=2, cex=3)
+mtext("Relative error", side=2, outer=TRUE, line=3.5, cex=3)
+mtext("Model type and data availability", side=1, outer=TRUE, line=5, cex=3)
+dev.off()

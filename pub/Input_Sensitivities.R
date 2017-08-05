@@ -207,8 +207,8 @@ sens_base_modcombos$C_opt <- rep(0, nrow(sens_base_modcombos))
 
 all_sens_dir <- c(sens_equil_dir_vec, sens_base_dir_vec)
 
-sens_bp <- bias_precision(dirs=all_sens_dir, itervec=itervec)
-saveRDS(sens_bp, file.path(res_dir, "sens_bias_precision.rds"))
+# sens_bp <- bias_precision(dirs=all_sens_dir, itervec=itervec)
+# saveRDS(sens_bp, file.path(res_dir, "sens_bias_precision.rds"))
 sens_bp <- readRDS(file.path(res_dir, "sens_bias_precision.rds"))
 
 dirs1 <- c(equil_dir_vec, base_dir_vec)
