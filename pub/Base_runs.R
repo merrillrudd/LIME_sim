@@ -185,6 +185,24 @@ dirs1 <- c(equil_dir_vec, base_dir_vec)
 
 bp1 <- readRDS(file.path(res_dir, "equil_var_bias_precision.rds"))
 
+data_vec <- c("Index_Catch_LC20","Index_LC10","Index_LC1","Catch_LC10","Catch_LC1","LC10","LC1","LBSPR10","LBSPR1")
+bmat <- pmat <- matrix(NA, nrow=9, ncol=9)
+rownames(bmat) <- rownames(pmat) <- data_vec
+colnames(bmat) <- colnames(pmat) <- rep(c("equil", "two-way", "one-way"),3)
+
+for(i in 1:length(data_vec)){
+	idir <- c(which(grepl("Short", dirs1) & grepl(paste0("/", data_vec[i],"/"), dirs1) & grepl("SampleSize_200/", dirs1) & grepl("equil_", dirs1)==FALSE), which(grepl("Medium", dirs1) & grepl(paste0("/", data_vec[i],"/"), dirs1) & grepl("SampleSize_200/", dirs1) & grepl("equil_", dirs1)==FALSE), which(grepl("Long", dirs1) & grepl(paste0("/", data_vec[i],"/"), dirs1) & grepl("SampleSize_200/", dirs1) & grepl("equil_", dirs1)==FALSE))
+	b <- sapply(1:length(idir), function(x) median((bp1$relerr[,idir[x]]), na.rm=TRUE))
+	p <- sapply(1:length(idir), function(x) median(abs(bp1$relerr[,idir[x]]), na.rm=TRUE))
+	bmat[i,] <- b
+	pmat[i,] <- p
+	rm(b)
+	rm(p)
+}
+
+write.csv(rbind(bmat, pmat), file.path(res_dir, "base_biases_precision.csv"))
+
+
 icol <- rev(brewer.pal(3,"Purples"))
 ccol <- rev(brewer.pal(3, "Oranges"))
 lcol <- rev(brewer.pal(3, "Blues"))
