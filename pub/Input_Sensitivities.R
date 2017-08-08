@@ -16,8 +16,8 @@ library(LBSPR)
 
 
 ### ----- directories and functions -----------###
-# main_dir <- "C:\\Git_Projects\\LIME_sim"
-main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+main_dir <- "C:\\Git_Projects\\LIME_sim"
+# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 if(grepl("C:", main_dir)) ncores <- 2
 if(grepl("F:", main_dir)) ncores <- 5
@@ -214,6 +214,126 @@ sens_bp <- readRDS(file.path(res_dir, "sens_bias_precision.rds"))
 dirs1 <- c(equil_dir_vec, base_dir_vec)
 bp1 <- readRDS(file.path(res_dir, "equil_var_bias_precision.rds"))
 
+
+### high asymptotic length
+i1 <- which(grepl("linf", all_sens_dir) & grepl("high", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+
+### low asymptotic length
+i1 <- which(grepl("linf", all_sens_dir) & grepl("low", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+
+## high growth coefficient
+i1 <- which(grepl("vbk", all_sens_dir) & grepl("high", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+
+
+## low growth coefficient
+i1 <- which(grepl("vbk", all_sens_dir) & grepl("low", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+
+
+## high M
+i1 <- which(grepl("/M/", all_sens_dir) & grepl("high", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+## low M
+i1 <- which(grepl("/M/", all_sens_dir) & grepl("low", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+## bias base
+median(bp1$relerr[,i2], na.rm=TRUE)
+
+
+## high ML50
+i1 <- which(grepl("/ML50/", all_sens_dir) & grepl("high", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+
+## low ML50
+i1 <- which(grepl("/ML50/", all_sens_dir) & grepl("low", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+
+
+## high CVLen
+i1 <- which(grepl("/CVlen/", all_sens_dir) & grepl("high", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
+
+
+
+## low CVLen
+i1 <- which(grepl("/CVlen/", all_sens_dir) & grepl("low", all_sens_dir))
+all_sens_dir[i1]
+i2 <- which(grepl("/LC10/", dirs1))
+dirs1[i2]
+
+## bias sens
+median(sens_bp$relerr[,i1], na.rm=TRUE)
 
 col_vec <- c(rep("steelblue",3), rep("tomato",3))
 

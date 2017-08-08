@@ -16,8 +16,8 @@ library(LBSPR)
 
 
 ### ----- directories and functions -----------###
-# main_dir <- "C:\\Git_Projects\\LIME_sim"
-main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
+main_dir <- "C:\\Git_Projects\\LIME_sim"
+# main_dir <- "F:\\Merrill\\Git_Projects\\LIME_sim"
 
 if(grepl("C:", main_dir)) ncores <- 2
 if(grepl("F:", main_dir)) ncores <- 8
@@ -203,6 +203,10 @@ for(i in 1:length(data_vec)){
 write.csv(rbind(bmat, pmat), file.path(res_dir, "base_biases_precision.csv"))
 
 
+
+
+
+
 icol <- rev(brewer.pal(3,"Purples"))
 ccol <- rev(brewer.pal(3, "Oranges"))
 lcol <- rev(brewer.pal(3, "Blues"))
@@ -319,7 +323,7 @@ print.letter("(g)", cex=3)
 i2 <- which(grepl("Medium", dirs1) & grepl("SampleSize_200/", dirs1) & grepl("base/", dirs1) & grepl("Increasing", dirs1))
 # i2 <- i1[-c(which(grepl("LC5/",dirs1[i1]) | grepl("LC2/",dirs1[i1])))]
 dirs1[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2.5))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,4.5))
 b1 <- sapply(1:length(i2), function(x) round(median(abs(bp1$dev[,i2[x]]), na.rm=TRUE),3))
 p1 <- round(bp1$precision[i2],3)
 # text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
@@ -327,20 +331,20 @@ p1 <- round(bp1$precision[i2],3)
 abline(h=0, lty=2)
 beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
 axis(1, at=1:length(i2), labels=c("Rich", "Index\nLC10", "Index\nLC1", "Catch\nLC10", "Catch\nLC1", "LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=3)
-axis(2,at=seq(-1,2.5,by=1), las=2, cex.axis=3.5)
+axis(2,at=seq(-1,4.5,by=1), las=2, cex.axis=3.5)
 print.letter("(h)", cex=3)
 
 i2 <- which(grepl("Long", dirs1) & grepl("SampleSize_200/", dirs1) & grepl("base/", dirs1) & grepl("Increasing", dirs1))
 # i2 <- i1[-c(which(grepl("LC5/",dirs1[i1]) | grepl("LC2/",dirs1[i1])))]
 dirs1[i2]
-plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-2,3.5))
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-2,4.5))
 b1 <- sapply(1:length(i2), function(x) round(median(abs(bp1$dev[,i2[x]]), na.rm=TRUE),3))
 p1 <- round(bp1$precision[i2],3)
 # text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
 # text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
 abline(h=0, lty=2)
 axis(1, at=1:length(i2), labels=c("Rich", "Index\nLC10", "Index\nLC1", "Catch\nLC10", "Catch\nLC1", "LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=3)
-axis(2,at=seq(-1,3,by=1), las=2, cex.axis=3.5)
+axis(2,at=seq(-1,4.5,by=1), las=2, cex.axis=3.5)
 beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
 mtext(side=4, "One-way trip", line=2, cex=3)
 mtext(side=2, outer=TRUE, line=3, "Relative error", cex=3)
@@ -540,3 +544,267 @@ axis(2,at=seq(-1,3,by=1), las=2, cex.axis=4)
 axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=4)
 # print.letter("(c)", cex=3)
 dev.off()
+
+
+### calcs
+### median bias for each life history type, all, 200 samples across scenarios
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+### median bias for each life history type, 1 year length comp, 200 samples across scenarios
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+### median bias for each life history type, 10 year length comp, 200 samples across scenarios
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+### median precision for each life history type, 1 year length comp, 200 samples across scenarios
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+### median precision for each life history type, 10 year length comp, 200 samples across scenarios
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC10/", dirs1) & grepl("equil_", dirs1)==FALSE)
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+### adding abundance index
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+## bias, adding abundane index by life history type
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+## precision, adding abundane index by life history type
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Medium", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index_LC", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("Long", dirs1) & grepl("SampleSize_200", dirs1) & grepl("/LC1", dirs1))
+dirs1[idir]
+median(abs(bp1$relerr[,idir]), na.rm=TRUE)
+
+
+### adding catch
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+
+### adding catch, equilibrium
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC", dirs1) & grepl("equil", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1) & grepl("equil", dirs1))
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+### adding catch, non-equilibrium
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC", dirs1) & grepl("equil", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1) & grepl("equil", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+
+### adding catch, non-equilibrium except catch+1
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC", dirs1) & grepl("equil", dirs1)==FALSE & grepl("/Catch_LC1/SampleSize_200/LH_Short", dirs1)==FALSE) 
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/LC", dirs1) & grepl("equil", dirs1)==FALSE)
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+### catch +1 compared to catch+10, short-lived non-equilibrium
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC10", dirs1) & grepl("equil", dirs1)==FALSE & grepl("Short", dirs1)) 
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+idir <- which(grepl("SampleSize_200", dirs1) & grepl("/Catch_LC1/", dirs1) & grepl("equil", dirs1)==FALSE & grepl("Short", dirs1)) 
+dirs1[idir]
+median((bp1$relerr[,idir]), na.rm=TRUE)
+
+
+## convergence rate
+idir <- which(grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$converge[,idir])/length(ic1$converge[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("Index_Catch_LC20", dirs1))
+dirs1[idir]
+sum(ic1$converge[,idir])/length(ic1$converge[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/LC1", dirs1))
+dirs1[idir]
+sum(ic1$converge[,idir])/length(ic1$converge[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/Catch", dirs1))
+dirs1[idir]
+sum(ic1$converge[,idir])/length(ic1$converge[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/Index_LC", dirs1))
+dirs1[idir]
+sum(ic1$converge[,idir])/length(ic1$converge[,idir])
+
+## parameter hitting a bound
+length(which(bp1$bound>0))
+
+
+## coverage interval
+idir <- which(grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+## data availability
+sapply(1:length(data_vec), function(x){
+	idir <- which(grepl(data_vec[x], dirs1) & grepl("LBSPR", dirs1)==FALSE)
+	sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+})
+
+## life history
+sapply(1:length(lh_vec), function(x){
+	idir <- which(grepl(lh_vec[x], dirs1) & grepl("LBSPR", dirs1)==FALSE)
+	sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+})
+
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("Index_Catch_LC20", dirs1))
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/LC1", dirs1))
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/Catch", dirs1))
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+
+idir <- which(grepl("LBSPR", dirs1)==FALSE & grepl("/Index_LC", dirs1))
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+
+
+## coverage interval -- by variation
+idir <- which(grepl("/equil/", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("Ramp/", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("Increasing/", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+## coverage interval -- by life history
+idir <- which(grepl("Short", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("Medium", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+
+idir <- which(grepl("Long", dirs1) & grepl("LBSPR", dirs1)==FALSE)
+dirs1[idir]
+sum(ic1$cover[,idir])/length(ic1$cover[,idir])
+

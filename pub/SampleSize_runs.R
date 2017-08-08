@@ -108,7 +108,7 @@ lh_vec <- c("Short", "Medium", "Long")
 Fdyn_vec <- c("Ramp", "Increasing")#, "Decreasing")
 Rdyn_vec <- c("AR")
 data_vec <- c("LC10", "LC1")
-SampleSize_vec <- c(1000, 500, 100, 50, 20)
+SampleSize_vec <- c(1000, 500, 200, 100, 50, 20)
 itervec <- 1:100
 
 base_N_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
@@ -174,7 +174,7 @@ bp_N <- readRDS(file.path(res_dir, "sample_size_bias_precision.rds"))
 
 
 ## sample size
-data_vec <- paste0("SampleSize_", c(1000,500,100,50,20))
+data_vec <- paste0("SampleSize_", c(1000,500,200,100,50,20))
 bmat <- pmat <- matrix(NA, nrow=length(data_vec), ncol=9)
 rownames(bmat) <- rownames(pmat) <- data_vec
 colnames(bmat) <- colnames(pmat) <- rep(c("equil", "two-way", "one-way"),3)

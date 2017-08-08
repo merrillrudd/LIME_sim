@@ -204,8 +204,8 @@ equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
 
 all_dirs <- c(equil_LBSPR_dir_vec, equil_MoYr_dir_vec, equil_runMonthly_dir_vec)
 
-bp <- bias_precision(all_dirs,itervec=1:100)
-saveRDS(bp, file.path(res_dir, "explore_monthly_bias_precision.rds"))
+# bp <- bias_precision(all_dirs,itervec=1:100)
+# saveRDS(bp, file.path(res_dir, "explore_monthly_bias_precision.rds"))
 
 bp <- readRDS(file.path(res_dir, "explore_monthly_bias_precision.rds"))
 
@@ -217,8 +217,8 @@ bmat2 <- pmat2 <- rep(NA, length(dirnames))
 names(bmat2) <- names(pmat2) <- dirnames
 
 for(i in 1:length(dirnames)){
-	b <- sapply(1:length(idir), function(x) median((bp$relerr[,i]), na.rm=TRUE))
-	p <- sapply(1:length(idir), function(x) median(abs(bp$relerr[,i]), na.rm=TRUE))
+	b <- sapply(1:length(dirnames), function(x) median((bp$relerr[,i]), na.rm=TRUE))
+	p <- sapply(1:length(dirnames), function(x) median(abs(bp$relerr[,i]), na.rm=TRUE))
 	bmat2[i] <- b
 	pmat2[i] <- p
 	rm(b)
@@ -227,27 +227,287 @@ for(i in 1:length(dirnames)){
 
 write.csv(rbind(bmat2, pmat2), file.path(res_dir, "explore_monthly_bias_precision.csv"))
 
+## calculations for paper
+moyrd <- all_dirs[grepl("MoYr",all_dirs)]
+mod <- all_dirs[grepl("runMonthly",all_dirs)]
+
+idir <- which(grepl("runMonthly",all_dirs) & grepl("LC1/",all_dirs))
+all_dirs[idir]
+median(bp$relerr[,idir], na.rm=TRUE)
+
+idir <- which(grepl("runMonthly",all_dirs) & grepl("LC10/",all_dirs))
+all_dirs[idir]
+median(bp$relerr[,idir], na.rm=TRUE)
+
+idir <- which(grepl("MoYr",all_dirs) & grepl("LC1/",all_dirs) & grepl("Short",all_dirs))
+all_dirs[idir]
+median(bp$relerr[,idir], na.rm=TRUE)
+
+idir <- which(grepl("MoYr",all_dirs) & grepl("LC10/",all_dirs) & grepl("Short",all_dirs))
+all_dirs[idir]
+median(bp$relerr[,idir], na.rm=TRUE)
+## create figure for paper
+
+############################################################
+#### equilibrium - instantaneous LF
+############################################################
+
+### ----- models to run ----------- ###
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- "Constant"
+Rdyn_vec <- "Constant"
+data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- 200
+itervec <- 1:100
+
+equil_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+equil_modcombos$C_opt <- rep(0, nrow(equil_modcombos))
+	equil_modcombos$C_opt[which(grepl("Catch",equil_modcombos[,"Data_avail"]))] <- 2
+
+### ----- equilibrium test ----------- ###
+
+	equil_dir <- file.path(main_dir, "equil")
+	# unlink(equil_dir, TRUE)
+	dir.create(equil_dir, showWarnings=FALSE)	
+
+	## setup equilibrium dirs
+	equil_dir_vec <- model_paths(res_dir=equil_dir, modcombos=equil_modcombos[,-c(ncol(equil_modcombos))])
+
+############################################################
+#### base - with variation
+############################################################
+### ----- models to run ----------- ###
+lh_vec <- c("Short", "Medium", "Long")
+Fdyn_vec <- c("Ramp", "Increasing")#, "Decreasing")
+Rdyn_vec <- c("AR")
+data_vec <- c("Index_Catch_LC20", "Index_LC10", "Index_LC1", "Catch_LC10", "Catch_LC1", "LC10", "LC1", "LBSPR10", "LBSPR1")
+SampleSize_vec <- 200
+itervec <- 1:100
+
+base_modcombos <- expand.grid("Data_avail"=data_vec, "SampleSize"=paste0("SampleSize_", SampleSize_vec), "LH"=paste0("LH_",lh_vec), "Fdyn"=paste0("F_",Fdyn_vec), "Rdyn"=paste0("R_",Rdyn_vec), stringsAsFactors=FALSE)
+base_modcombos$C_opt <- rep(0, nrow(base_modcombos))
+	base_modcombos$C_opt[which(grepl("Catch",base_modcombos[,"Data_avail"]))] <- 2
+
+### ----- base runs ----------- ###
+	base_dir <- file.path(main_dir, "base")
+	# unlink(base_dir, TRUE)
+	dir.create(base_dir, showWarnings=FALSE)	
+
+	## setup equil dirs
+	base_dir_vec <- model_paths(res_dir=base_dir, modcombos=base_modcombos[,-c(ncol(base_modcombos))])
+
+
+dirs1 <- c(equil_dir_vec, base_dir_vec)
+
+bp1 <- readRDS(file.path(res_dir, "equil_var_bias_precision.rds"))
+
 
 
 lcol <- rev(brewer.pal(3, "Blues"))
 rcol <- rev(brewer.pal(3, "Greens"))
 col_vec <- c(lcol[1:2], rcol[1:2])
 
+
+
+
+png(file.path(fig_dir, "EquilCompare_RelativeError_n200.png"), height=16, width=35, res=200, units="in")
+par(mfrow=c(3,3), mar=c(0,7,0,0), omi=c(1.6,1.2,1,1.5), mgp=c(3,2,0))
+## equilibrium
+i2 <- which(grepl("Short", dirs1) & grepl("SampleSize_200/", dirs1) & grepl("/equil/", dirs1) & grepl("Index", dirs1)==FALSE & grepl("Catch", dirs1)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",dirs1[i1]) | grepl("LC2/",dirs1[i1])))]
+dirs1[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp1$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp1$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=2.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=2.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+axis(2,at=seq(-0.5,1,by=0.5), las=2,cex.axis=3.5)
+mtext(side=3, "Short-lived", line=1, cex=3)
+print.letter(xy=c(0.05,0.95), "(a)", cex=3)
+
+i2 <- which(grepl("Medium", dirs1) & grepl("SampleSize_200/", dirs1) & grepl("/equil/", dirs1) & grepl("Index", dirs1)==FALSE & grepl("Catch", dirs1)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",dirs1[i1]) | grepl("LC2/",dirs1[i1])))]
+dirs1[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1.5))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp1$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp1$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=3, "Medium-lived", line=1, cex=3)
+axis(2,at=seq(-0.5,1.5,by=0.5), las=2,cex.axis=3.5)
+print.letter(xy=c(0.05,0.95), "(b)", cex=3)
+
+i2 <- which(grepl("Long", dirs1) & grepl("SampleSize_200/", dirs1) & grepl("/equil/", dirs1) & grepl("Index", dirs1)==FALSE & grepl("Catch", dirs1)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",dirs1[i1]) | grepl("LC2/",dirs1[i1])))]
+dirs1[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2.5))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp1$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp1$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=3, "Longer-lived", line=1, cex=3)
+mtext(side=4, "Annual data,\nannual model", line=6.5, cex=3)
+axis(2,at=seq(-1,2.5,by=0.5), las=2,cex.axis=3.5)
+print.letter(xy=c(0.05,0.95), "(c)", cex=3)
+
+## base
+i2 <- which(grepl("Short", all_dirs) & grepl("SampleSize_200/", all_dirs) & grepl("/equil_MoYr/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,4))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+axis(2,at=seq(-1,4,by=1), las=2,cex.axis=3.5)
+# axis(1, at=1:9, labels=c("Rich", "Index\nLC10", "Index\nLC1", "Catch\nLC10", "Catch\nLC1", "LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=2.8)
+print.letter(xy=c(0.05,0.95), "(d)", cex=3)
+
+i2 <- which(grepl("Medium", all_dirs) & grepl("SampleSize_200/", all_dirs) & grepl("/equil_MoYr/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+# axis(1, at=1:9, labels=c("Rich", "Index\nLC10", "Index\nLC1", "Catch\nLC10", "Catch\nLC1", "LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=2.8)
+axis(2,at=seq(-1,2,by=0.5), las=2,cex.axis=3.5)
+print.letter(xy=c(0.05,0.95), "(e)", cex=3)
+
+i2 <- which(grepl("Long", all_dirs) & grepl("SampleSize_200/", all_dirs) & grepl("/equil_MoYr/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,3.5))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+# axis(1, at=1:9, labels=c("Rich", "Index\nLC10", "Index\nLC1", "Catch\nLC10", "Catch\nLC1", "LC10", "LC1", "LBSPR\n10", "LBSPR\n1"), cex.axis=2.8)
+axis(2,at=seq(-1,3.5,by=1), las=2,cex.axis=3.5)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=4, "Monthly data,\nannual model", line=6.5, cex=3)
+print.letter(xy=c(0.05,0.95), "(f)", cex=3)
+
+
+## base
+i2 <- which(grepl("Short", all_dirs) & grepl("/equil_LBSPR/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,2))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+axis(2,at=seq(-1,1.5,by=0.5), las=2,cex.axis=3.5)
+axis(1, at=1:length(i2), labels=c("LC10","LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+print.letter(xy=c(0.05,0.95), "(g)", cex=3)
+
+i2 <- which(grepl("Medium", all_dirs) & grepl("/equil_LBSPR/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1.5))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+axis(1, at=1:length(i2), labels=c("LC10","LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1,1.5,by=0.5), las=2,cex.axis=3.5)
+print.letter(xy=c(0.05,0.95), "(h)", cex=3)
+
+i2 <- which(grepl("Long", all_dirs) & grepl("/equil_LBSPR/", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE)
+# i2 <- i1[-c(which(grepl("LC5/",all_dirs[i1]) | grepl("LC2/",all_dirs[i1])))]
+all_dirs[i2]
+plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1.5,2))
+b1 <- sapply(1:length(i2), function(x) round(median(abs(bp$dev[,i2[x]]), na.rm=TRUE),3))
+p1 <- round(bp$precision[i2],3)
+# text(x=1:length(b1), y=0.95*3, b1, cex=3.5)
+# text(x=1:length(p1), y=0.8*3, paste0("(",p1,")"), cex=3.5)
+abline(h=0, lty=2)
+axis(1, at=1:length(i2), labels=c("LC10","LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
+axis(2,at=seq(-1.5,2,by=0.5), las=2,cex.axis=3.5)
+beanplot(as.data.frame(bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+mtext(side=4, "LB-SPR OM", line=2, cex=3)
+mtext(side=2, outer=TRUE, line=3, "Relative error", cex=3)
+mtext(side=1, outer=TRUE, line=8, "Model/Data availability scenario", cex=3)
+print.letter(xy=c(0.05,0.95), "(i)", cex=3)
+dev.off()
+
+
+
+### appendix figure
+## size and abundance at age for yearly vs. monthly time step
+lh1 <- adj_variation(SigmaR=0.0001, SigmaF=0.0001, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=2, mat_param=1, nseasons=1)[["Short"]]
+lh2 <- adj_variation(SigmaR=0.0001, SigmaF=0.0001, SigmaC=0.01, SigmaI=0.01, CVlen=0.1, rho=0, selex_param=2, mat_param=1, nseasons=12)[["Short"]]
+
+x1 <- generate_data(modpath=NULL, data_avail="LC", itervec=1, Fdynamics="Constant", Rdynamics="Constant",  lh=lh1, Nyears=20, Nyears_comp=20, comp_sample=200, init_depl=0.8, pool=TRUE)
+x2 <- generate_data(modpath=NULL, data_avail="LC", itervec=1, Fdynamics="Constant", Rdynamics="Constant",  lh=lh2, Nyears=20, Nyears_comp=20, comp_sample=200, init_depl=0.8, pool=FALSE)
+
+p1 <- t(x1$plba)
+p2 <- t(x2$plba)
+n1 <- x1$N_at
+n2 <- x2$N_at
+ages <- x1$ages
+months <- x2$ages
+
+orange_fun <- colorRampPalette(c("white", "orangered"))
+oranges <- orange_fun(12)
+
+png(file.path(fig_dir, "SizeAtAge.png"), height=10, width=8, res=200, units="in")
+par(mfrow=c(5,1), mar=c(0,0,0,0), omi=c(1,1,1,1))
+for(i in 1:length(ages)){
+	if(i!=length(ages)) index <- which(months >= ages[i] & months < ages[i+1])
+	if(i==length(ages)) index <- which(months >= ages[i])
+	if(i==1){
+		ylim=c(0,1)
+		int=0.2
+	}
+	if(i!=1){
+		ylim=c(0,0.2)
+		int= 0.05
+	}
+	plot(p1[,i], col="blue", lwd=8, type="l", lty=1, ylim=ylim, xaxt="n", yaxt="n", xlab="", ylab="", xaxs="i", yaxs="i")
+	par(new=TRUE)
+	matplot(p2[,index], col=oranges, lwd=2, type="l", lty=1, ylim=ylim, xaxt="n", yaxt="n", xlab="", ylab="", xaxs="i", yaxs="i")
+	axis(2, las=2, cex.axis=2, at=seq(0,(as.numeric(ylim[2])-int),by=int))
+	print.letter(xy=c(0.9,0.9), paste0("Age = ", ages[i]), cex=2)
+}
+axis(1, cex.axis=2)
+mtext("Length (cm)", cex=2, side=1, line=3.5)
+mtext("Probability of being length given age", cex=2, side=2, line=5, outer=TRUE)
+dev.off()
+
+## old code -- need to rename
 #### comparing equilibrium to monthly
 png(file.path(fig_dir, "Compare_annual_monthly.png"), res=200, units="in", height=15, width=28)
 par(mfrow=c(2,3), mar=c(0,4,2,2), omi=c(1,1,1,1))
-i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/equil/", all_dirs)))
-all_dirs[i2]
-b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
-p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
+i2 <- c(which(grepl("Short", dirs1) & grepl("SampleSize_200", dirs1) & grepl("Index", dirs1)==FALSE & grepl("Catch", dirs1)==FALSE & grepl("/equil/", dirs1)))
+dirs1[i2]
+b1 <- sapply(1:length(i2), function(x) median(bp1$relerr[,i2[x]], na.rm=TRUE))
+p1 <- sapply(1:length(i2), function(x) median(abs(bp1$relerr[,i2[x]]), na.rm=TRUE))
 plot(x=1,y=1,type="n",xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab="",ylab="",xlim=c(0.5,length(i2)+0.5),ylim=c(-1,1))
 abline(h=0, lty=2)
 # axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=3.5)
 axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=3.5)
-beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
+beanplot(as.data.frame(bp1$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
 mtext(side=3, "Annual data and model", line=1, cex=3)
 
-i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/equil_12seasons/", all_dirs)))
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/equil_MoYr/", all_dirs)))
 all_dirs[i2]
 b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
 p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
@@ -282,7 +542,7 @@ axis(1, at=1:length(i2), labels=c("LC10", "LC1", "LBSPR10", "LBSPR1"), cex.axis=
 axis(2,at=seq(-1,1,by=0.5), las=2,cex.axis=3.5)
 beanplot(as.data.frame(all_bp$relerr[,i2]), col=lapply(1:length(col_vec), function(x) c(col_vec[x],"black","black","black")), xaxt="n", yaxt="n", xaxs="i", yaxs="i", lwd=3, na.rm=TRUE, what=c(0,1,1,0), beanlines="median", beanlinewd=3, add=TRUE)
 
-i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/base_12seasons/", all_dirs)))
+i2 <- c(which(grepl("Short", all_dirs) & grepl("SampleSize_200", all_dirs) & grepl("Index", all_dirs)==FALSE & grepl("Catch", all_dirs)==FALSE & grepl("/base_MoYr/", all_dirs)))
 all_dirs[i2]
 b1 <- sapply(1:length(i2), function(x) median(all_bp$relerr[,i2[x]], na.rm=TRUE))
 p1 <- sapply(1:length(i2), function(x) median(abs(all_bp$relerr[,i2[x]]), na.rm=TRUE))
